@@ -81,7 +81,14 @@ export function TopCompaniesTable({ companies, fxRates, isLoading }: TopCompanie
           <TableBody>
             {sorted.map((company) => (
               <TableRow key={company.company_id}>
-                <TableCell className="font-medium">{company.name}</TableCell>
+                <TableCell className="font-medium">
+                  <Link
+                    href={`/portfolio/${company.company_id}`}
+                    className="hover:text-primary transition-colors hover:underline"
+                  >
+                    {company.name}
+                  </Link>
+                </TableCell>
                 <TableCell className="hidden sm:table-cell">
                   <Badge variant="secondary">{company.investment_currency}</Badge>
                 </TableCell>

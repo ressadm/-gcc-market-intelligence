@@ -34,9 +34,17 @@ export function aggregatePortfolioCHF(
   const currencyMap = new Map<string, CurrencyBreakdown>()
   const sectorMap = new Map<string, SectorBreakdown>()
 
+  // For weighted FX impact calculation
+  let weightedMoicOrigSum = 0
+  let weightedMoicOrigDenom = 0
+
   for (const c of companies) {
     const currency = c.investment_currency || 'CHF'
-    const investedCHF = convertToCHF(c.total_invested, currency, fxRates)
+    // Invested: historical FX rate (locked at investment date)
+    const investedCHF = currency === 'CHF'
+      ? c.total_invested
+      : c.total_invested * (c.original_fx_rate || 1)
+    // Current value + distributions: live FX rate (recomputed daily)
     const currentCHF = convertToCHF(c.current_value, currency, fxRates)
     const distCHF = convertToCHF(c.total_distributions, currency, fxRates)
 
@@ -45,6 +53,13 @@ export function aggregatePortfolioCHF(
     totalDistributionsCHF += distCHF
 
     if (c.is_stale) staleCount++
+
+    // Per-company MOIC in original currency (no FX conversion)
+    if (c.total_invested > 0 && investedCHF > 0) {
+      const moicOrig = (c.current_value + c.total_distributions) / c.total_invested
+      weightedMoicOrigSum += moicOrig * investedCHF
+      weightedMoicOrigDenom += investedCHF
+    }
 
     // Currency breakdown
     const existing = currencyMap.get(currency) || {
@@ -77,6 +92,16 @@ export function aggregatePortfolioCHF(
     ? totalValueCHF / totalInvestedCHF
     : 0
 
+  const unrealizedPnlCHF = totalCurrentValueCHF - totalInvestedCHF
+
+  // Weighted average MOIC in original currencies, then compare to CHF MOIC
+  const weightedMoicOrig = weightedMoicOrigDenom > 0
+    ? weightedMoicOrigSum / weightedMoicOrigDenom
+    : 0
+  const fxImpactPct = weightedMoicOrig > 0
+    ? (portfolioMoic / weightedMoicOrig) - 1
+    : 0
+
   return {
     companyCount: companies.length,
     totalInvestedCHF,
@@ -84,6 +109,8 @@ export function aggregatePortfolioCHF(
     totalDistributionsCHF,
     totalValueCHF,
     portfolioMoic,
+    unrealizedPnlCHF,
+    fxImpactPct,
     staleCount,
     currencyBreakdown: Array.from(currencyMap.values())
       .sort((a, b) => b.investedCHF - a.investedCHF),

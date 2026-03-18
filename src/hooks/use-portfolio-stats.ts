@@ -21,6 +21,8 @@ const emptyStats: PortfolioStats = {
   totalDistributionsCHF: 0,
   totalValueCHF: 0,
   portfolioMoic: 0,
+  unrealizedPnlCHF: 0,
+  fxImpactPct: 0,
   staleCount: 0,
   currencyBreakdown: [],
   sectorBreakdown: [],

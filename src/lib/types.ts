@@ -37,9 +37,25 @@ export interface PortfolioStats {
   totalDistributionsCHF: number
   totalValueCHF: number
   portfolioMoic: number
+  unrealizedPnlCHF: number
+  fxImpactPct: number
   staleCount: number
   currencyBreakdown: CurrencyBreakdown[]
   sectorBreakdown: SectorBreakdown[]
+}
+
+export interface Transaction {
+  id: string
+  company_id: string
+  type: string
+  amount_orig: number
+  orig_currency: string
+  fx_rate_orig_to_chf: number | null
+  price_per_share_orig: number | null
+  shares: number | null
+  date: string
+  is_cash_event: boolean
+  notes: string | null
 }
 
 export interface CurrencyBreakdown {

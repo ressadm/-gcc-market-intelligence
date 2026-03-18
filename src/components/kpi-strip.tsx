@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatCurrency, formatMoic, moicColorClass } from '@/lib/format'
+import { formatCurrency, formatMoic, moicColorClass, valueColorClass } from '@/lib/format'
 import type { PortfolioStats } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -14,6 +14,9 @@ interface KpiStripProps {
 export function KpiStrip({ stats, isLoading }: KpiStripProps) {
   if (isLoading) return <KpiStripSkeleton />
 
+  const pnlSign = stats.unrealizedPnlCHF >= 0 ? '+' : ''
+  const fxSign = stats.fxImpactPct >= 0 ? '+' : ''
+
   const cards = [
     {
       label: 'Deployed Capital',
@@ -23,6 +26,8 @@ export function KpiStrip({ stats, isLoading }: KpiStripProps) {
     {
       label: 'Portfolio NAV',
       value: formatCurrency(stats.totalCurrentValueCHF),
+      sub: `${pnlSign}${formatCurrency(stats.unrealizedPnlCHF)} P&L`,
+      subClassName: valueColorClass(stats.unrealizedPnlCHF),
       className: 'text-foreground',
     },
     {
@@ -31,15 +36,15 @@ export function KpiStrip({ stats, isLoading }: KpiStripProps) {
       className: moicColorClass(stats.portfolioMoic),
     },
     {
-      label: 'Companies',
-      value: String(stats.companyCount),
-      sub: `across ${stats.currencyBreakdown.length} currencies`,
-      className: 'text-foreground',
+      label: 'FX Impact',
+      value: `${fxSign}${(stats.fxImpactPct * 100).toFixed(1)}%`,
+      sub: stats.fxImpactPct < 0 ? 'CHF strength headwind' : stats.fxImpactPct > 0 ? 'CHF weakness tailwind' : 'No FX effect',
+      className: stats.fxImpactPct < 0 ? 'text-red-400' : stats.fxImpactPct > 0 ? 'text-green-500' : 'text-muted-foreground',
     },
     {
       label: 'Stale Valuations',
       value: String(stats.staleCount),
-      sub: `of ${stats.companyCount} total`,
+      sub: `of ${stats.companyCount} companies`,
       className: stats.staleCount > 0 ? 'text-red-400' : 'text-green-500',
     },
   ]
@@ -54,7 +59,7 @@ export function KpiStrip({ stats, isLoading }: KpiStripProps) {
               {card.value}
             </p>
             {card.sub && (
-              <p className="text-xs text-muted-foreground mt-1">{card.sub}</p>
+              <p className={cn('text-xs mt-1', card.subClassName || 'text-muted-foreground')}>{card.sub}</p>
             )}
           </CardContent>
         </Card>
