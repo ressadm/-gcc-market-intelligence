@@ -150,3 +150,35 @@ export interface DealActivity {
   content: string | null
   created_at: string
 }
+
+// Agent Insights types
+
+export type InsightType =
+  | 'stale_valuation'
+  | 'fx_impact'
+  | 'deal_alert'
+  | 'portfolio_change'
+  | 'follow_on_signal'
+  | 'aging_alert'
+  | 'market_news'
+  | 'performance_alert'
+  | 'daily_summary'
+  | 'weekly_digest'
+
+export type InsightPriority = 'critical' | 'warning' | 'info'
+
+export interface AgentInsight {
+  id: string
+  insight_type: InsightType
+  entity_type: string | null
+  entity_id: string | null
+  title: string
+  body: string
+  priority: InsightPriority
+  action_url: string | null
+  is_read: boolean
+  is_dismissed: boolean
+  source_task_id: string | null
+  expires_at: string | null
+  created_at: string
+}

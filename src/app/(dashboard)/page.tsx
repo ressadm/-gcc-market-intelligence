@@ -1,14 +1,17 @@
 'use client'
 
 import { usePortfolioStats } from '@/hooks/use-portfolio-stats'
+import { useInsights } from '@/hooks/use-insights'
 import { KpiStrip } from '@/components/kpi-strip'
 import { CurrencyChart } from '@/components/charts/currency-chart'
 import { SectorChart } from '@/components/charts/sector-chart'
 import { TopCompaniesTable } from '@/components/top-companies-table'
+import { InsightsPanel } from '@/components/insights/insights-panel'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 
 export default function DashboardPage() {
   const { stats, companies, fxRates, isLoading, error, refetch } = usePortfolioStats()
+  const { insights, isLoading: insightsLoading, dismiss, markRead } = useInsights()
 
   if (error) {
     return (
@@ -47,11 +50,21 @@ export default function DashboardPage() {
         <SectorChart data={stats.sectorBreakdown} isLoading={isLoading} />
       </div>
 
-      <TopCompaniesTable
-        companies={companies}
-        fxRates={fxRates}
-        isLoading={isLoading}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <TopCompaniesTable
+            companies={companies}
+            fxRates={fxRates}
+            isLoading={isLoading}
+          />
+        </div>
+        <InsightsPanel
+          insights={insights}
+          isLoading={insightsLoading}
+          onDismiss={dismiss}
+          onMarkRead={markRead}
+        />
+      </div>
     </div>
   )
 }
