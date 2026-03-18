@@ -3,31 +3,42 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatCurrency, formatMoic, moicColorClass, valueColorClass } from '@/lib/format'
-import type { PortfolioStats } from '@/lib/types'
+import { convertFromCHF } from '@/lib/fx'
+import type { PortfolioStats, DisplayCurrency } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 interface KpiStripProps {
   stats: PortfolioStats
   isLoading?: boolean
+  displayCurrency?: DisplayCurrency
+  fxRates?: Record<string, number>
 }
 
-export function KpiStrip({ stats, isLoading }: KpiStripProps) {
+export function KpiStrip({ stats, isLoading, displayCurrency = 'CHF', fxRates = {} }: KpiStripProps) {
   if (isLoading) return <KpiStripSkeleton />
 
-  const pnlSign = stats.unrealizedPnlCHF >= 0 ? '+' : ''
+  const ccy = displayCurrency
+  const convert = (chf: number) =>
+    ccy === 'CHF' ? chf : convertFromCHF(chf, ccy, fxRates)
+
+  const invested = convert(stats.totalInvestedCHF)
+  const nav = convert(stats.totalCurrentValueCHF)
+  const pnl = convert(stats.unrealizedPnlCHF)
+
+  const pnlSign = pnl >= 0 ? '+' : ''
   const fxSign = stats.fxImpactPct >= 0 ? '+' : ''
 
   const cards = [
     {
       label: 'Deployed Capital',
-      value: formatCurrency(stats.totalInvestedCHF),
+      value: formatCurrency(invested, ccy),
       className: 'text-foreground',
     },
     {
       label: 'Portfolio NAV',
-      value: formatCurrency(stats.totalCurrentValueCHF),
-      sub: `${pnlSign}${formatCurrency(stats.unrealizedPnlCHF)} P&L`,
-      subClassName: valueColorClass(stats.unrealizedPnlCHF),
+      value: formatCurrency(nav, ccy),
+      sub: `${pnlSign}${formatCurrency(pnl, ccy)} P&L`,
+      subClassName: valueColorClass(pnl),
       className: 'text-foreground',
     },
     {

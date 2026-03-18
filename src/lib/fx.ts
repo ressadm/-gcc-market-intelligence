@@ -19,6 +19,21 @@ export function convertToCHF(
 }
 
 /**
+ * Convert a CHF amount to a display currency.
+ * fxRates maps currency→CHF, so to get CHF→USD we divide by the USD→CHF rate.
+ */
+export function convertFromCHF(
+  amountCHF: number,
+  targetCurrency: string,
+  fxRates: Record<string, number>
+): number {
+  if (targetCurrency === 'CHF') return amountCHF
+  const rate = fxRates[targetCurrency]
+  if (!rate) return amountCHF
+  return amountCHF / rate
+}
+
+/**
  * Aggregate portfolio data into CHF-normalized stats.
  * All financial math is deterministic — pure arithmetic, no LLM.
  */

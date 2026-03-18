@@ -9,12 +9,15 @@ import { SectorChart } from '@/components/charts/sector-chart'
 import { TopCompaniesTable } from '@/components/top-companies-table'
 import { InsightsPanel } from '@/components/insights/insights-panel'
 import { CompanyDrawer } from '@/components/company-drawer'
+import { CurrencyToggle } from '@/components/currency-toggle'
+import type { DisplayCurrency } from '@/lib/types'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 
 export default function DashboardPage() {
   const { stats, companies, fxRates, isLoading, error, refetch } = usePortfolioStats()
   const { insights, isLoading: insightsLoading, dismiss, markRead } = useInsights()
   const [drawerCompanyId, setDrawerCompanyId] = useState<string | null>(null)
+  const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>('CHF')
 
   if (error) {
     return (
@@ -37,16 +40,19 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-2xl font-bold">Dashboard</h1>
-        <button
-          onClick={refetch}
-          className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary"
-          aria-label="Refresh data"
-        >
-          <RefreshCw size={18} />
-        </button>
+        <div className="flex items-center gap-3">
+          <CurrencyToggle value={displayCurrency} onChange={setDisplayCurrency} />
+          <button
+            onClick={refetch}
+            className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary"
+            aria-label="Refresh data"
+          >
+            <RefreshCw size={18} />
+          </button>
+        </div>
       </div>
 
-      <KpiStrip stats={stats} isLoading={isLoading} />
+      <KpiStrip stats={stats} isLoading={isLoading} displayCurrency={displayCurrency} fxRates={fxRates} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <CurrencyChart data={stats.currencyBreakdown} isLoading={isLoading} />

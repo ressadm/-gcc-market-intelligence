@@ -72,6 +72,8 @@ export interface SectorBreakdown {
   currentValueCHF: number
 }
 
+export type DisplayCurrency = 'CHF' | 'USD'
+
 // Deal Pipeline types
 
 export type DealStage =
