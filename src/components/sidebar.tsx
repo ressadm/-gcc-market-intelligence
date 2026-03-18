@@ -18,7 +18,7 @@ import { createSupabaseBrowser } from '@/lib/supabase-browser'
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard, enabled: true },
   { href: '/portfolio', label: 'Portfolio', icon: Briefcase, enabled: true },
-  { href: '/pipeline', label: 'Pipeline', icon: TrendingUp, enabled: false },
+  { href: '/pipeline', label: 'Pipeline', icon: TrendingUp, enabled: true },
   { href: '/agents', label: 'Agents', icon: Bot, enabled: false },
 ]
 
@@ -70,7 +70,9 @@ export function Sidebar() {
         {/* Nav */}
         <nav className="flex-1 py-4 px-3 space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href
+            const isActive = item.href === '/'
+              ? pathname === '/'
+              : pathname.startsWith(item.href)
             const Icon = item.icon
 
             if (!item.enabled) {
