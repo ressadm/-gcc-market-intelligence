@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { usePortfolioStats } from '@/hooks/use-portfolio-stats'
 import { useInsights } from '@/hooks/use-insights'
 import { KpiStrip } from '@/components/kpi-strip'
@@ -10,6 +10,8 @@ import { TopCompaniesTable } from '@/components/top-companies-table'
 import { InsightsPanel } from '@/components/insights/insights-panel'
 import { CompanyDrawer } from '@/components/company-drawer'
 import { CurrencyToggle } from '@/components/currency-toggle'
+import { SourceTabs, SOURCE_VEHICLE_MAP } from '@/components/source-tabs'
+import { aggregatePortfolioCHF } from '@/lib/fx'
 import type { DisplayCurrency } from '@/lib/types'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 
@@ -18,6 +20,28 @@ export default function DashboardPage() {
   const { insights, isLoading: insightsLoading, dismiss, markRead } = useInsights()
   const [drawerCompanyId, setDrawerCompanyId] = useState<string | null>(null)
   const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>('CHF')
+  const [sourceTab, setSourceTab] = useState('all')
+
+  // Source-filtered companies
+  const filteredCompanies = useMemo(() => {
+    const vehicles = SOURCE_VEHICLE_MAP[sourceTab] || []
+    if (vehicles.length === 0) return companies
+    return companies.filter(c => vehicles.includes(c.vehicle || ''))
+  }, [companies, sourceTab])
+
+  // Recompute stats for filtered set
+  const filteredStats = useMemo(() => {
+    if (sourceTab === 'all') return stats
+    return aggregatePortfolioCHF(filteredCompanies, fxRates)
+  }, [filteredCompanies, fxRates, sourceTab, stats])
+
+  // Source counts
+  const sourceCounts = useMemo(() => ({
+    all: companies.length,
+    verve: companies.filter(c => c.vehicle === 'fiduciary').length,
+    direct: companies.filter(c => c.vehicle === 'direct').length,
+    funds: companies.filter(c => c.vehicle === 'fund').length,
+  }), [companies])
 
   if (error) {
     return (
@@ -52,17 +76,19 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <KpiStrip stats={stats} isLoading={isLoading} displayCurrency={displayCurrency} fxRates={fxRates} />
+      <SourceTabs value={sourceTab} onChange={setSourceTab} counts={sourceCounts} />
+
+      <KpiStrip stats={filteredStats} isLoading={isLoading} displayCurrency={displayCurrency} fxRates={fxRates} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <CurrencyChart data={stats.currencyBreakdown} isLoading={isLoading} />
-        <SectorChart data={stats.sectorBreakdown} isLoading={isLoading} />
+        <CurrencyChart data={filteredStats.currencyBreakdown} isLoading={isLoading} />
+        <SectorChart data={filteredStats.sectorBreakdown} isLoading={isLoading} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <TopCompaniesTable
-            companies={companies}
+            companies={filteredCompanies}
             fxRates={fxRates}
             isLoading={isLoading}
             onCompanyClick={setDrawerCompanyId}
