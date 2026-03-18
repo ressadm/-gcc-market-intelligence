@@ -11,6 +11,9 @@ import { InsightsPanel } from '@/components/insights/insights-panel'
 import { CompanyDrawer } from '@/components/company-drawer'
 import { CurrencyToggle } from '@/components/currency-toggle'
 import { SourceTabs, SOURCE_VEHICLE_MAP } from '@/components/source-tabs'
+import { AttentionPanel } from '@/components/attention-panel'
+import { ActivityFeed } from '@/components/activity-feed'
+import { useRecentTransactions } from '@/hooks/use-recent-transactions'
 import { aggregatePortfolioCHF } from '@/lib/fx'
 import type { DisplayCurrency } from '@/lib/types'
 import { AlertCircle, RefreshCw } from 'lucide-react'
@@ -18,6 +21,7 @@ import { AlertCircle, RefreshCw } from 'lucide-react'
 export default function DashboardPage() {
   const { stats, companies, fxRates, isLoading, error, refetch } = usePortfolioStats()
   const { insights, isLoading: insightsLoading, dismiss, markRead } = useInsights()
+  const { transactions: recentTxns, isLoading: txnLoading } = useRecentTransactions(5)
   const [drawerCompanyId, setDrawerCompanyId] = useState<string | null>(null)
   const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>('CHF')
   const [sourceTab, setSourceTab] = useState('all')
@@ -85,6 +89,8 @@ export default function DashboardPage() {
         <SectorChart data={filteredStats.sectorBreakdown} isLoading={isLoading} />
       </div>
 
+      <AttentionPanel companies={filteredCompanies} />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <TopCompaniesTable
@@ -94,12 +100,15 @@ export default function DashboardPage() {
             onCompanyClick={setDrawerCompanyId}
           />
         </div>
-        <InsightsPanel
-          insights={insights}
-          isLoading={insightsLoading}
-          onDismiss={dismiss}
-          onMarkRead={markRead}
-        />
+        <div className="space-y-6">
+          <InsightsPanel
+            insights={insights}
+            isLoading={insightsLoading}
+            onDismiss={dismiss}
+            onMarkRead={markRead}
+          />
+          <ActivityFeed transactions={recentTxns} isLoading={txnLoading} />
+        </div>
       </div>
 
       {drawerCompanyId && (
