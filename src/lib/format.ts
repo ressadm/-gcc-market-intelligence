@@ -39,3 +39,9 @@ export function valueColorClass(value: number): string {
   if (value < 0) return 'text-red-500'
   return 'text-muted-foreground'
 }
+
+export function formatDaysAgo(days: number): string {
+  if (days === 0) return 'Today'
+  if (days === 1) return '1 day'
+  return `${days} days`
+}

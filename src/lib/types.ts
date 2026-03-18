@@ -71,3 +71,82 @@ export interface SectorBreakdown {
   investedCHF: number
   currentValueCHF: number
 }
+
+// Deal Pipeline types
+
+export type DealStage =
+  | 'discovered'
+  | 'screening'
+  | 'evaluating'
+  | 'decision'
+  | 'committed'
+  | 'closed'
+  | 'passed'
+  | 'expired'
+  | 'withdrawn'
+
+export interface DealPipelineSummary {
+  deal_id: string
+  deal_name: string
+  stage: DealStage
+  source: string | null
+  sector: string | null
+  created_at: string
+  updated_at: string
+  days_in_stage: number
+  total_days: number
+  is_aging: boolean
+  team_rating: number | null
+  market_rating: number | null
+  product_rating: number | null
+  traction_rating: number | null
+  ai_score: number | null
+  ai_recommendation: string | null
+  activity_count: number
+  latest_activity: string | null
+}
+
+export interface Deal {
+  id: string
+  company_id: string | null
+  deal_name: string
+  stage: DealStage
+  source_channel: string | null
+  one_liner: string | null
+  priority: string | null
+  tags: string[] | null
+  company_sector: string | null
+  round_type: string | null
+  round_size_usd: number | null
+  valuation_pre_usd: number | null
+  instrument: string | null
+  allocation_target: number | null
+  allocation_min: number | null
+  allocation_max: number | null
+  allocation_currency: string | null
+  decision: string | null
+  decision_confidence: number | null
+  decision_reason: string | null
+  decision_date: string | null
+  evaluation_data: {
+    team_rating?: number
+    market_rating?: number
+    product_rating?: number
+    traction_rating?: number
+  } | null
+  agent_score_json: {
+    overall_score?: number
+    recommendation?: string
+  } | null
+  created_at: string
+  updated_at: string
+}
+
+export interface DealActivity {
+  id: string
+  deal_id: string
+  activity_type: string
+  title: string
+  content: string | null
+  created_at: string
+}
