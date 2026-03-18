@@ -14,7 +14,7 @@ export function formatCurrencyPrecise(amount: number, currency: string = 'CHF'):
 
 export function formatMoic(moic: number | null): string {
   if (moic === null || moic === undefined) return '—'
-  return `${moic.toFixed(2)}x`
+  return `x\u00A0${moic.toFixed(2)}`
 }
 
 export function formatDate(dateStr: string | null): string {
