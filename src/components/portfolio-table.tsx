@@ -17,7 +17,7 @@ import { convertToCHF } from '@/lib/fx'
 import type { PortfolioCompany } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { ArrowUp, ArrowDown, ArrowUpDown, ChevronRight, ChevronDown } from 'lucide-react'
-import { PortfolioExpandedRow } from './portfolio-expanded-row'
+import { PortfolioExpandedRows } from './portfolio-expanded-row'
 
 type SortColumn = 'name' | 'status' | 'sector' | 'vehicle' | 'investment_currency' | 'total_invested' | 'current_value' | 'moic' | 'gainLoss' | 'latest_valuation_date' | 'is_stale' | 'total_shares' | 'latest_share_price'
 type SortDirection = 'asc' | 'desc'
@@ -395,9 +395,9 @@ export function PortfolioTable({
                         )}
                       </TableRow>
 
-                      {/* Expanded row */}
+                      {/* Expanded transaction rows — rendered as sub-rows in same table */}
                       {isExpanded && (
-                        <PortfolioExpandedRow
+                        <PortfolioExpandedRows
                           key={`expanded-${company.company_id}`}
                           companyId={company.company_id}
                           colSpan={ACTIVE_COL_COUNT}

@@ -3,14 +3,7 @@
 import { useCompanyDetail } from '@/hooks/use-company-detail'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { TableCell, TableRow } from '@/components/ui/table'
 import { formatCurrency, formatCurrencyPrecise, formatDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -30,17 +23,16 @@ const typeBadgeColors: Record<string, string> = {
   RECAP: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
 }
 
-export function PortfolioExpandedRow({ companyId, colSpan }: PortfolioExpandedRowProps) {
+export function PortfolioExpandedRows({ companyId, colSpan }: PortfolioExpandedRowProps) {
   const { company, transactions, isLoading, error } = useCompanyDetail(companyId)
 
   if (isLoading) {
     return (
-      <TableRow className="bg-secondary/30">
-        <TableCell colSpan={colSpan} className="p-4">
+      <TableRow className="bg-muted/10">
+        <TableCell colSpan={colSpan} className="py-3 pl-12">
           <div className="space-y-2">
+            <Skeleton className="h-4 w-64" />
             <Skeleton className="h-4 w-48" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
           </div>
         </TableCell>
       </TableRow>
@@ -49,8 +41,8 @@ export function PortfolioExpandedRow({ companyId, colSpan }: PortfolioExpandedRo
 
   if (error) {
     return (
-      <TableRow className="bg-secondary/30">
-        <TableCell colSpan={colSpan} className="p-4 text-sm text-destructive">
+      <TableRow className="bg-muted/10">
+        <TableCell colSpan={colSpan} className="py-3 pl-12 text-sm text-destructive">
           {error}
         </TableCell>
       </TableRow>
@@ -59,8 +51,8 @@ export function PortfolioExpandedRow({ companyId, colSpan }: PortfolioExpandedRo
 
   if (!company || transactions.length === 0) {
     return (
-      <TableRow className="bg-secondary/30">
-        <TableCell colSpan={colSpan} className="p-4 text-sm text-muted-foreground/50">
+      <TableRow className="bg-muted/10">
+        <TableCell colSpan={colSpan} className="py-3 pl-12 text-sm text-muted-foreground/50">
           No transactions recorded
         </TableCell>
       </TableRow>
@@ -77,82 +69,100 @@ export function PortfolioExpandedRow({ companyId, colSpan }: PortfolioExpandedRo
   const roundCount = cashTxns.length
 
   return (
-    <TableRow className="bg-secondary/20 hover:bg-secondary/30">
-      <TableCell colSpan={colSpan} className="p-4">
-        <div className="overflow-x-auto">
-          <Table className="text-[12px]">
-            <TableHeader>
-              <TableRow className="border-border/50">
-                <TableHead className="text-[10px] uppercase tracking-wide py-1.5">Date</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wide py-1.5">Type</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wide py-1.5 text-right">Amount ({ccy})</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wide py-1.5 text-right">Amount (CHF)</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wide py-1.5 text-right hidden sm:table-cell">Shares</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wide py-1.5 text-right hidden sm:table-cell">Price/{ccy}</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wide py-1.5 text-right hidden md:table-cell">FX Rate</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.map((txn) => (
-                <TableRow
-                  key={txn.id}
-                  className={cn('border-border/30', !txn.is_cash_event && 'opacity-40')}
-                >
-                  <TableCell className="tabular-nums py-1.5">{formatDate(txn.date)}</TableCell>
-                  <TableCell className="py-1.5">
-                    <Badge variant="outline" className={cn('text-[9px] px-1 py-0', typeBadgeColors[txn.type] || '')}>
-                      {txn.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums py-1.5">
-                    {formatCurrencyPrecise(txn.amount_orig, ccy)}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums py-1.5">
-                    {txn.fx_rate_orig_to_chf
-                      ? formatCurrencyPrecise(txn.amount_orig * txn.fx_rate_orig_to_chf, 'CHF')
-                      : '—'}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums py-1.5 hidden sm:table-cell">
-                    {txn.shares ? txn.shares.toFixed(2) : '—'}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums py-1.5 hidden sm:table-cell">
-                    {txn.price_per_share_orig
-                      ? formatCurrencyPrecise(txn.price_per_share_orig, ccy)
-                      : '—'}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums py-1.5 hidden md:table-cell">
-                    {txn.fx_rate_orig_to_chf
-                      ? txn.fx_rate_orig_to_chf.toFixed(4)
-                      : '—'}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+    <>
+      {/* Transaction rows — rendered as sub-rows in the same parent table */}
+      {transactions.map((txn) => (
+        <TableRow
+          key={txn.id}
+          className={cn(
+            'bg-muted/10 border-border/20',
+            !txn.is_cash_event && 'opacity-40'
+          )}
+        >
+          {/* Empty chevron cell */}
+          <TableCell className="w-8" />
 
-        {/* Summary line */}
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
+          {/* Round name + type badge (under Company column) */}
+          <TableCell className="pl-6 text-[12px]">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className={cn('text-[9px] px-1 py-0 shrink-0', typeBadgeColors[txn.type] || '')}>
+                {txn.type}
+              </Badge>
+              <span className="text-muted-foreground tabular-nums">{formatDate(txn.date)}</span>
+              {txn.notes && (
+                <span className="text-muted-foreground/60 truncate text-[10px]">{txn.notes}</span>
+              )}
+            </div>
+          </TableCell>
+
+          {/* Empty Status */}
+          <TableCell />
+          {/* Empty Type */}
+          <TableCell className="hidden lg:table-cell" />
+          {/* Empty Ccy */}
+          <TableCell className="hidden md:table-cell" />
+
+          {/* Shares (under parent Shares column) */}
+          <TableCell className="text-right tabular-nums text-[12px] hidden xl:table-cell">
+            {txn.shares ? txn.shares.toFixed(2) : '—'}
+          </TableCell>
+          {/* Price per share (under parent Price column) */}
+          <TableCell className="text-right tabular-nums text-[12px] hidden xl:table-cell">
+            {txn.price_per_share_orig
+              ? formatCurrencyPrecise(txn.price_per_share_orig, ccy)
+              : '—'}
+          </TableCell>
+
+          {/* Amount orig (under parent Invested column) */}
+          <TableCell className="text-right tabular-nums text-[12px]">
+            {formatCurrency(txn.amount_orig, ccy)}
+          </TableCell>
+
+          {/* Amount CHF (under parent Value column) */}
+          <TableCell className="text-right tabular-nums text-[12px]">
+            {txn.fx_rate_orig_to_chf
+              ? formatCurrency(txn.amount_orig * txn.fx_rate_orig_to_chf, 'CHF')
+              : '—'}
+          </TableCell>
+
+          {/* FX rate (under parent G/L column) */}
+          <TableCell className="text-right tabular-nums text-[11px] text-muted-foreground">
+            {txn.fx_rate_orig_to_chf && ccy !== 'CHF'
+              ? `FX ${txn.fx_rate_orig_to_chf.toFixed(4)}`
+              : ''}
+          </TableCell>
+
+          {/* Empty MOIC */}
+          <TableCell />
+        </TableRow>
+      ))}
+
+      {/* Summary row */}
+      <TableRow className="bg-muted/15 border-border/20">
+        <TableCell className="w-8" />
+        <TableCell colSpan={6} className="pl-6">
           <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
-            <span>Total invested (cash only)</span>
-            <span className="tabular-nums">{ccy}: {formatCurrency(sumOrigCash, ccy)}</span>
+            <span className="font-medium">Total (cash only)</span>
+            <span className="tabular-nums">{formatCurrency(sumOrigCash, ccy)}</span>
             {ccy !== 'CHF' && (
-              <span className="tabular-nums">CHF: {formatCurrency(sumChfCash)}</span>
+              <span className="tabular-nums">{formatCurrency(sumChfCash, 'CHF')}</span>
             )}
             {blendedFx && ccy !== 'CHF' && (
               <span className="tabular-nums">Blended FX: {blendedFx.toFixed(4)}</span>
             )}
-            <span>Rounds: {roundCount}</span>
+            <span>{roundCount} round{roundCount !== 1 ? 's' : ''}</span>
           </div>
+        </TableCell>
+        <TableCell colSpan={4} className="text-right">
           <Link
             href={`/portfolio/${companyId}`}
-            className="flex items-center gap-1 text-xs text-primary hover:underline"
+            className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
           >
             View full details
-            <ArrowRight size={12} />
+            <ArrowRight size={10} />
           </Link>
-        </div>
-      </TableCell>
-    </TableRow>
+        </TableCell>
+      </TableRow>
+    </>
   )
 }
