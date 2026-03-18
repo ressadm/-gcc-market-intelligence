@@ -11,7 +11,9 @@ import {
   Bot,
   Menu,
   X,
+  LogOut,
 } from 'lucide-react'
+import { createSupabaseBrowser } from '@/lib/supabase-browser'
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard, enabled: true },
@@ -23,6 +25,12 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  async function handleLogout() {
+    const supabase = createSupabaseBrowser()
+    await supabase.auth.signOut()
+    window.location.href = '/login'
+  }
 
   return (
     <>
@@ -97,12 +105,19 @@ export function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-border">
+        <div className="px-6 py-4 border-t border-border space-y-3">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="h-2 w-2 rounded-full bg-green-500" />
             <span>Connected</span>
           </div>
-          <p className="text-xs text-muted-foreground/60 mt-1">v0.1.0</p>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <LogOut size={14} />
+            <span>Sign out</span>
+          </button>
+          <p className="text-xs text-muted-foreground/60">v0.2.0</p>
         </div>
       </aside>
     </>
