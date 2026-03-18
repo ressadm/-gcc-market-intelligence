@@ -42,6 +42,8 @@ export interface PortfolioStats {
   staleCount: number
   currencyBreakdown: CurrencyBreakdown[]
   sectorBreakdown: SectorBreakdown[]
+  sourceBreakdown: SourceBreakdown[]
+  stageBreakdown: StageBreakdown[]
 }
 
 export interface Transaction {
@@ -73,6 +75,20 @@ export interface SectorBreakdown {
 }
 
 export type DisplayCurrency = 'CHF' | 'USD'
+
+export interface SourceBreakdown {
+  source: string
+  count: number
+  investedCHF: number
+  currentValueCHF: number
+}
+
+export interface StageBreakdown {
+  stage: string
+  count: number
+  investedCHF: number
+  currentValueCHF: number
+}
 
 // Deal Pipeline types
 

@@ -6,6 +6,8 @@ import { useInsights } from '@/hooks/use-insights'
 import { KpiStrip } from '@/components/kpi-strip'
 import { CurrencyChart } from '@/components/charts/currency-chart'
 import { SectorChart } from '@/components/charts/sector-chart'
+import { SourceChart } from '@/components/charts/source-chart'
+import { StageChart } from '@/components/charts/stage-chart'
 import { TopCompaniesTable } from '@/components/top-companies-table'
 import { InsightsPanel } from '@/components/insights/insights-panel'
 import { CompanyDrawer } from '@/components/company-drawer'
@@ -84,9 +86,11 @@ export default function DashboardPage() {
 
       <KpiStrip stats={filteredStats} isLoading={isLoading} displayCurrency={displayCurrency} fxRates={fxRates} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <CurrencyChart data={filteredStats.currencyBreakdown} isLoading={isLoading} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
         <SectorChart data={filteredStats.sectorBreakdown} isLoading={isLoading} />
+        <StageChart data={filteredStats.stageBreakdown} isLoading={isLoading} />
+        <CurrencyChart data={filteredStats.currencyBreakdown} isLoading={isLoading} />
+        <SourceChart data={filteredStats.sourceBreakdown} isLoading={isLoading} />
       </div>
 
       <AttentionPanel companies={filteredCompanies} />
