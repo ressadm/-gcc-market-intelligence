@@ -6,12 +6,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { formatCurrency, formatCurrencyPrecise, formatDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 
 interface PortfolioExpandedRowProps {
   companyId: string
   colSpan: number
+  onViewDetail?: (companyId: string) => void
 }
 
 const typeBadgeColors: Record<string, string> = {
@@ -23,7 +23,7 @@ const typeBadgeColors: Record<string, string> = {
   RECAP: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
 }
 
-export function PortfolioExpandedRows({ companyId, colSpan }: PortfolioExpandedRowProps) {
+export function PortfolioExpandedRows({ companyId, colSpan, onViewDetail }: PortfolioExpandedRowProps) {
   const { company, transactions, isLoading, error } = useCompanyDetail(companyId)
 
   if (isLoading) {
@@ -154,13 +154,13 @@ export function PortfolioExpandedRows({ companyId, colSpan }: PortfolioExpandedR
           </div>
         </TableCell>
         <TableCell colSpan={4} className="text-right">
-          <Link
-            href={`/portfolio/${companyId}`}
-            className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+          <button
+            onClick={() => onViewDetail?.(companyId)}
+            className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline cursor-pointer"
           >
             View full details
             <ArrowRight size={10} />
-          </Link>
+          </button>
         </TableCell>
       </TableRow>
     </>

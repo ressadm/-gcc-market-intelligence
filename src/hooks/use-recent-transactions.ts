@@ -7,6 +7,7 @@ export interface RecentTransaction {
   id: string
   company_id: string
   company_name: string
+  company_vehicle: string | null
   type: string
   amount_orig: number
   orig_currency: string
@@ -20,10 +21,13 @@ interface UseRecentTransactionsReturn {
   error: string | null
 }
 
-export function useRecentTransactions(limit: number = 5): UseRecentTransactionsReturn {
+export function useRecentTransactions(limit: number = 5, vehicleFilter?: string[]): UseRecentTransactionsReturn {
   const [transactions, setTransactions] = useState<RecentTransaction[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Serialize filter for dependency
+  const filterKey = vehicleFilter?.join(',') || ''
 
   useEffect(() => {
     let cancelled = false
@@ -35,25 +39,34 @@ export function useRecentTransactions(limit: number = 5): UseRecentTransactionsR
       try {
         const { data, error: queryError } = await supabase
           .from('transactions')
-          .select('id, company_id, type, amount_orig, orig_currency, date, is_cash_event, companies!inner(name)')
+          .select('id, company_id, type, amount_orig, orig_currency, date, is_cash_event, companies!inner(name, vehicle)')
           .order('date', { ascending: false })
-          .limit(limit)
+          .limit(50) // fetch more, filter client-side
 
         if (queryError) throw new Error(queryError.message)
         if (cancelled) return
 
-        const mapped = (data || []).map((t: Record<string, unknown>) => ({
-          id: t.id as string,
-          company_id: t.company_id as string,
-          company_name: (t.companies as { name: string })?.name || 'Unknown',
-          type: t.type as string,
-          amount_orig: t.amount_orig as number,
-          orig_currency: t.orig_currency as string,
-          date: t.date as string,
-          is_cash_event: t.is_cash_event as boolean,
-        }))
+        let mapped = (data || []).map((t: Record<string, unknown>) => {
+          const company = t.companies as { name: string; vehicle: string | null }
+          return {
+            id: t.id as string,
+            company_id: t.company_id as string,
+            company_name: company?.name || 'Unknown',
+            company_vehicle: company?.vehicle || null,
+            type: t.type as string,
+            amount_orig: t.amount_orig as number,
+            orig_currency: t.orig_currency as string,
+            date: t.date as string,
+            is_cash_event: t.is_cash_event as boolean,
+          }
+        })
 
-        setTransactions(mapped)
+        // Apply vehicle filter
+        if (vehicleFilter && vehicleFilter.length > 0) {
+          mapped = mapped.filter(t => vehicleFilter.includes(t.company_vehicle || ''))
+        }
+
+        setTransactions(mapped.slice(0, limit))
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Failed to fetch transactions')
@@ -65,7 +78,7 @@ export function useRecentTransactions(limit: number = 5): UseRecentTransactionsR
 
     fetchData()
     return () => { cancelled = true }
-  }, [limit])
+  }, [limit, filterKey])
 
   return { transactions, isLoading, error }
 }

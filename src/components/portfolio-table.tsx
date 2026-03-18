@@ -401,6 +401,7 @@ export function PortfolioTable({
                           key={`expanded-${company.company_id}`}
                           companyId={company.company_id}
                           colSpan={ACTIVE_COL_COUNT}
+                          onViewDetail={onCompanyClick}
                         />
                       )}
                     </>

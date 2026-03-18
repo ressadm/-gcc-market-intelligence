@@ -21,19 +21,23 @@ import type { DisplayCurrency } from '@/lib/types'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 
 export default function DashboardPage() {
-  const { stats, companies, fxRates, isLoading, error, refetch } = usePortfolioStats()
-  const { insights, isLoading: insightsLoading, dismiss, markRead } = useInsights()
-  const { transactions: recentTxns, isLoading: txnLoading } = useRecentTransactions(5)
   const [drawerCompanyId, setDrawerCompanyId] = useState<string | null>(null)
   const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>('CHF')
   const [sourceTab, setSourceTab] = useState('all')
 
+  const { stats, companies, fxRates, isLoading, error, refetch } = usePortfolioStats()
+  const { insights, isLoading: insightsLoading, dismiss, markRead } = useInsights()
+  const vehicleFilter = SOURCE_VEHICLE_MAP[sourceTab] || []
+  const { transactions: recentTxns, isLoading: txnLoading } = useRecentTransactions(
+    5,
+    vehicleFilter.length > 0 ? vehicleFilter : undefined
+  )
+
   // Source-filtered companies
   const filteredCompanies = useMemo(() => {
-    const vehicles = SOURCE_VEHICLE_MAP[sourceTab] || []
-    if (vehicles.length === 0) return companies
-    return companies.filter(c => vehicles.includes(c.vehicle || ''))
-  }, [companies, sourceTab])
+    if (vehicleFilter.length === 0) return companies
+    return companies.filter(c => vehicleFilter.includes(c.vehicle || ''))
+  }, [companies, vehicleFilter])
 
   // Recompute stats for filtered set
   const filteredStats = useMemo(() => {
@@ -93,7 +97,7 @@ export default function DashboardPage() {
         <SourceChart data={filteredStats.sourceBreakdown} isLoading={isLoading} />
       </div>
 
-      <AttentionPanel companies={filteredCompanies} />
+      <AttentionPanel companies={filteredCompanies} onCompanyClick={setDrawerCompanyId} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">

@@ -9,6 +9,7 @@ import { AlertTriangle, TrendingUp, Clock } from 'lucide-react'
 
 interface AttentionPanelProps {
   companies: PortfolioCompany[]
+  onCompanyClick?: (companyId: string) => void
 }
 
 interface AttentionItem {
@@ -54,7 +55,7 @@ function getAttentionItems(companies: PortfolioCompany[]): AttentionItem[] {
   return items
 }
 
-export function AttentionPanel({ companies }: AttentionPanelProps) {
+export function AttentionPanel({ companies, onCompanyClick }: AttentionPanelProps) {
   const items = getAttentionItems(companies)
 
   if (items.length === 0) return null
@@ -75,7 +76,11 @@ export function AttentionPanel({ companies }: AttentionPanelProps) {
             const config = reasonConfig[item.reason]
             const Icon = config.icon
             return (
-              <div key={item.company.company_id} className="flex items-center gap-3 py-2.5">
+              <div
+                key={item.company.company_id}
+                className="flex items-center gap-3 py-2.5 cursor-pointer hover:bg-amber-500/5 -mx-2 px-2 rounded transition-colors"
+                onClick={() => onCompanyClick?.(item.company.company_id)}
+              >
                 <div className={cn('p-1.5 rounded-md', config.bgClass)}>
                   <Icon size={14} className={config.iconClass} />
                 </div>
