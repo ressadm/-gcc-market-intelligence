@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -29,6 +28,7 @@ interface PortfolioTableProps {
   search: string
   vehicleFilter: string
   statusFilter: string
+  onCompanyClick?: (companyId: string) => void
 }
 
 const vehicleLabels: Record<string, string> = {
@@ -51,6 +51,7 @@ export function PortfolioTable({
   search,
   vehicleFilter,
   statusFilter,
+  onCompanyClick,
 }: PortfolioTableProps) {
   const [sortColumn, setSortColumn] = useState<SortColumn>('moic')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
@@ -223,12 +224,12 @@ export function PortfolioTable({
                     className={cn(isWrittenDown && 'bg-red-500/5')}
                   >
                     <TableCell className="font-medium">
-                      <Link
-                        href={`/portfolio/${company.company_id}`}
-                        className="hover:text-primary transition-colors hover:underline"
+                      <button
+                        onClick={() => onCompanyClick?.(company.company_id)}
+                        className="hover:text-primary transition-colors hover:underline text-left"
                       >
                         {company.name}
-                      </Link>
+                      </button>
                     </TableCell>
                     <TableCell>
                       <Badge variant={company.status === 'Active' ? 'default' : 'secondary'}>

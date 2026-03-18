@@ -5,6 +5,7 @@ import { usePortfolioStats } from '@/hooks/use-portfolio-stats'
 import { PortfolioTable } from '@/components/portfolio-table'
 import { PortfolioFilters } from '@/components/portfolio-filters'
 import { KpiStrip } from '@/components/kpi-strip'
+import { CompanyDrawer } from '@/components/company-drawer'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 
 export default function PortfolioPage() {
@@ -12,6 +13,7 @@ export default function PortfolioPage() {
   const [search, setSearch] = useState('')
   const [vehicleFilter, setVehicleFilter] = useState('All')
   const [statusFilter, setStatusFilter] = useState('All')
+  const [drawerCompanyId, setDrawerCompanyId] = useState<string | null>(null)
 
   if (error) {
     return (
@@ -53,7 +55,15 @@ export default function PortfolioPage() {
         search={search}
         vehicleFilter={vehicleFilter}
         statusFilter={statusFilter}
+        onCompanyClick={setDrawerCompanyId}
       />
+
+      {drawerCompanyId && (
+        <CompanyDrawer
+          companyId={drawerCompanyId}
+          onClose={() => setDrawerCompanyId(null)}
+        />
+      )}
     </div>
   )
 }

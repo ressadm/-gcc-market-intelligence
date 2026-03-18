@@ -21,9 +21,10 @@ interface TopCompaniesTableProps {
   companies: PortfolioCompany[]
   fxRates: Record<string, number>
   isLoading?: boolean
+  onCompanyClick?: (companyId: string) => void
 }
 
-export function TopCompaniesTable({ companies, fxRates, isLoading }: TopCompaniesTableProps) {
+export function TopCompaniesTable({ companies, fxRates, isLoading, onCompanyClick }: TopCompaniesTableProps) {
   if (isLoading) {
     return (
       <Card>
@@ -82,12 +83,12 @@ export function TopCompaniesTable({ companies, fxRates, isLoading }: TopCompanie
             {sorted.map((company) => (
               <TableRow key={company.company_id}>
                 <TableCell className="font-medium">
-                  <Link
-                    href={`/portfolio/${company.company_id}`}
-                    className="hover:text-primary transition-colors hover:underline"
+                  <button
+                    onClick={() => onCompanyClick?.(company.company_id)}
+                    className="hover:text-primary transition-colors hover:underline text-left"
                   >
                     {company.name}
-                  </Link>
+                  </button>
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">
                   <Badge variant="secondary">{company.investment_currency}</Badge>

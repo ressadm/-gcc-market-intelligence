@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { usePortfolioStats } from '@/hooks/use-portfolio-stats'
 import { useInsights } from '@/hooks/use-insights'
 import { KpiStrip } from '@/components/kpi-strip'
@@ -7,11 +8,13 @@ import { CurrencyChart } from '@/components/charts/currency-chart'
 import { SectorChart } from '@/components/charts/sector-chart'
 import { TopCompaniesTable } from '@/components/top-companies-table'
 import { InsightsPanel } from '@/components/insights/insights-panel'
+import { CompanyDrawer } from '@/components/company-drawer'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 
 export default function DashboardPage() {
   const { stats, companies, fxRates, isLoading, error, refetch } = usePortfolioStats()
   const { insights, isLoading: insightsLoading, dismiss, markRead } = useInsights()
+  const [drawerCompanyId, setDrawerCompanyId] = useState<string | null>(null)
 
   if (error) {
     return (
@@ -56,6 +59,7 @@ export default function DashboardPage() {
             companies={companies}
             fxRates={fxRates}
             isLoading={isLoading}
+            onCompanyClick={setDrawerCompanyId}
           />
         </div>
         <InsightsPanel
@@ -65,6 +69,13 @@ export default function DashboardPage() {
           onMarkRead={markRead}
         />
       </div>
+
+      {drawerCompanyId && (
+        <CompanyDrawer
+          companyId={drawerCompanyId}
+          onClose={() => setDrawerCompanyId(null)}
+        />
+      )}
     </div>
   )
 }
