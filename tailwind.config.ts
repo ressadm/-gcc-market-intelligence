@@ -57,8 +57,9 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)"],
-        mono: ["var(--font-geist-mono)"],
+        sans: ["Space Grotesk", "var(--font-geist-sans)", "system-ui", "sans-serif"],
+        heading: ["Archivo", "var(--font-geist-sans)", "system-ui", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "monospace"],
       },
     },
   },

@@ -1,18 +1,6 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
-import { cn } from "@/lib/utils";
-
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+import { Sidebar } from "@/components/sidebar";
 
 export const metadata: Metadata = {
   title: "ANgelOS",
@@ -25,15 +13,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={cn(
-          geistSans.variable,
-          geistMono.variable,
-          "antialiased font-sans"
-        )}
-      >
-        {children}
+    <html lang="en" className="dark">
+      <body className="antialiased font-sans">
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar />
+          <main className="flex-1 overflow-y-auto p-6 lg:p-8 lg:ml-0">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   );
