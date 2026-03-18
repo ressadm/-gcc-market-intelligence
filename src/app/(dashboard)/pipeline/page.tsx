@@ -5,7 +5,8 @@ import { usePipeline } from '@/hooks/use-pipeline'
 import { PipelineBoard } from '@/components/pipeline/pipeline-board'
 import { PipelineKpiStrip } from '@/components/pipeline/pipeline-kpi-strip'
 import { PipelineFilters } from '@/components/pipeline/pipeline-filters'
-import { AlertCircle, RefreshCw, Inbox } from 'lucide-react'
+import { AlertCircle, RefreshCw, Inbox, Plus } from 'lucide-react'
+import Link from 'next/link'
 
 export default function PipelinePage() {
   const { deals, isLoading, error, refetch } = usePipeline()
@@ -51,7 +52,16 @@ export default function PipelinePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-heading text-2xl font-bold">Pipeline</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-heading text-2xl font-bold">Pipeline</h1>
+        <Link
+          href="/pipeline/new"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
+        >
+          <Plus size={16} />
+          New Deal
+        </Link>
+      </div>
 
       <PipelineKpiStrip deals={filtered} isLoading={isLoading} />
 
