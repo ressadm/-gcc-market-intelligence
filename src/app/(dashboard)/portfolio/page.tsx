@@ -6,6 +6,8 @@ import { PortfolioTable } from '@/components/portfolio-table'
 import { PortfolioFilters } from '@/components/portfolio-filters'
 import { KpiStrip } from '@/components/kpi-strip'
 import { CompanyDrawer } from '@/components/company-drawer'
+import { RealizedInvestmentsTable } from '@/components/realized-investments-table'
+import { useRealizedTransactions } from '@/hooks/use-realized-transactions'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 
 export default function PortfolioPage() {
@@ -14,6 +16,7 @@ export default function PortfolioPage() {
   const [vehicleFilter, setVehicleFilter] = useState('All')
   const [statusFilter, setStatusFilter] = useState('All')
   const [drawerCompanyId, setDrawerCompanyId] = useState<string | null>(null)
+  const { transactions: realizedTxns, isLoading: realizedLoading } = useRealizedTransactions()
 
   if (error) {
     return (
@@ -57,6 +60,8 @@ export default function PortfolioPage() {
         statusFilter={statusFilter}
         onCompanyClick={setDrawerCompanyId}
       />
+
+      <RealizedInvestmentsTable transactions={realizedTxns} isLoading={realizedLoading} />
 
       {drawerCompanyId && (
         <CompanyDrawer
