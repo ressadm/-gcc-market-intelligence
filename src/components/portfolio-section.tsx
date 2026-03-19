@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo, Fragment } from 'react'
-import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -12,13 +11,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatCurrency, formatMoic, moicColorClass, valueColorClass } from '@/lib/format'
-import { convertToCHF } from '@/lib/fx'
-import type { PortfolioCompany } from '@/lib/types'
+import { convertToCHF, convertToDisplay } from '@/lib/fx'
+import type { DisplayCurrency, PortfolioCompany } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { ArrowUp, ArrowDown, ArrowUpDown, ChevronRight, ChevronDown } from 'lucide-react'
 import { PortfolioExpandedRows } from './portfolio-expanded-row'
 
-type SortColumn = 'name' | 'status' | 'sector' | 'vehicle' | 'investment_currency' | 'total_invested' | 'current_value' | 'moic' | 'gainLoss' | 'total_shares' | 'latest_share_price'
+type SortColumn = 'name' | 'total_invested' | 'current_value' | 'moic' | 'gainLoss' | 'total_shares' | 'latest_share_price'
 type SortDirection = 'asc' | 'desc'
 
 const vehicleLabels: Record<string, string> = {
@@ -27,24 +26,14 @@ const vehicleLabels: Record<string, string> = {
   fund: 'LP Fund',
 }
 
-const COL_COUNT_FULL = 11
-const COL_COUNT_COMPACT = 7
+// Column counts: chevron + company + (shares + price if !compact && !liq) + invested + value + g/l + moic
+const COL_COUNT_FULL = 8   // chevron, company, shares, price, invested, value, g/l, moic
+const COL_COUNT_COMPACT = 6 // chevron, company, invested, value, g/l, moic
+const COL_COUNT_LIQ = 3     // chevron, company, invested
 
-function getGainLossCHF(c: PortfolioCompany, fxRates: Record<string, number>): number {
+function getInvestedCHF(c: PortfolioCompany): number {
   const ccy = c.investment_currency || 'CHF'
-  const investedCHF = ccy === 'CHF' ? c.total_invested : c.total_invested * (c.original_fx_rate || 1)
-  return convertToCHF(c.current_value, ccy, fxRates) - investedCHF
-}
-
-function getGainLossOrig(c: PortfolioCompany): number {
-  return c.current_value - c.total_invested
-}
-
-function getCHFMoic(c: PortfolioCompany, fxRates: Record<string, number>): number | null {
-  const ccy = c.investment_currency || 'CHF'
-  const investedCHF = ccy === 'CHF' ? c.total_invested : c.total_invested * (c.original_fx_rate || 1)
-  if (investedCHF <= 0) return null
-  return convertToCHF(c.current_value, ccy, fxRates) / investedCHF
+  return ccy === 'CHF' ? c.total_invested : c.total_invested * (c.original_fx_rate || 1)
 }
 
 interface PortfolioSectionProps {
@@ -56,6 +45,7 @@ interface PortfolioSectionProps {
   showFooter?: boolean
   onCompanyClick?: (companyId: string) => void
   compactView?: boolean
+  displayCurrency?: DisplayCurrency
 }
 
 export function PortfolioSection({
@@ -67,6 +57,7 @@ export function PortfolioSection({
   showFooter = true,
   onCompanyClick,
   compactView = false,
+  displayCurrency = 'CHF',
 }: PortfolioSectionProps) {
   const [sortColumn, setSortColumn] = useState<SortColumn>('moic')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
@@ -82,19 +73,13 @@ export function PortfolioSection({
   }
 
   const allIds = companies.map(c => c.company_id)
-
-  function expandAll() {
-    setExpandedIds(new Set(allIds))
-  }
-
-  function collapseAll() {
-    setExpandedIds(new Set())
-  }
+  function expandAll() { setExpandedIds(new Set(allIds)) }
+  function collapseAll() { setExpandedIds(new Set()) }
 
   const sorted = useMemo(() => {
     return [...companies].sort((a, b) => {
-      let aVal: string | number | boolean | null
-      let bVal: string | number | boolean | null
+      let aVal: string | number | null
+      let bVal: string | number | null
 
       switch (sortColumn) {
         case 'name':
@@ -105,16 +90,13 @@ export function PortfolioSection({
           aVal = convertToCHF(a.current_value, a.investment_currency, fxRates)
           bVal = convertToCHF(b.current_value, b.investment_currency, fxRates)
           break
-        case 'total_invested': {
-          const aCcy = a.investment_currency || 'CHF'
-          const bCcy = b.investment_currency || 'CHF'
-          aVal = aCcy === 'CHF' ? a.total_invested : a.total_invested * (a.original_fx_rate || 1)
-          bVal = bCcy === 'CHF' ? b.total_invested : b.total_invested * (b.original_fx_rate || 1)
+        case 'total_invested':
+          aVal = getInvestedCHF(a)
+          bVal = getInvestedCHF(b)
           break
-        }
         case 'gainLoss':
-          aVal = getGainLossCHF(a, fxRates)
-          bVal = getGainLossCHF(b, fxRates)
+          aVal = convertToCHF(a.current_value, a.investment_currency, fxRates) - getInvestedCHF(a)
+          bVal = convertToCHF(b.current_value, b.investment_currency, fxRates) - getInvestedCHF(b)
           break
         case 'total_shares':
           aVal = a.total_shares ?? -1
@@ -154,14 +136,16 @@ export function PortfolioSection({
       : <ArrowDown size={14} className="ml-1 text-primary" />
   }
 
+  const dCcy = displayCurrency
+  const colCount = isLiquidation ? COL_COUNT_LIQ : compactView ? COL_COUNT_COMPACT : COL_COUNT_FULL
+
   // Section totals
-  const totalInvestedCHF = sorted.reduce((sum, c) => {
-    const ccy = c.investment_currency || 'CHF'
-    return sum + (ccy === 'CHF' ? c.total_invested : c.total_invested * (c.original_fx_rate || 1))
-  }, 0)
+  const totalInvestedCHF = sorted.reduce((sum, c) => sum + getInvestedCHF(c), 0)
   const totalValueCHF = sorted.reduce((sum, c) => sum + convertToCHF(c.current_value, c.investment_currency, fxRates), 0)
-  const totalGainLossCHF = totalValueCHF - totalInvestedCHF
   const totalMoic = totalInvestedCHF > 0 ? totalValueCHF / totalInvestedCHF : 0
+  const totalInvestedD = dCcy === 'CHF' ? totalInvestedCHF : totalInvestedCHF / (fxRates[dCcy] || 1)
+  const totalValueD = dCcy === 'CHF' ? totalValueCHF : totalValueCHF / (fxRates[dCcy] || 1)
+  const totalGainLossD = totalValueD - totalInvestedD
 
   if (companies.length === 0) return null
 
@@ -175,15 +159,6 @@ export function PortfolioSection({
               <TableHead className="cursor-pointer select-none" onClick={() => toggleSort('name')}>
                 <span className="flex items-center">Company <SortIcon col="name" /></span>
               </TableHead>
-              <TableHead className="cursor-pointer select-none" onClick={() => toggleSort('status')}>
-                <span className="flex items-center">Status <SortIcon col="status" /></span>
-              </TableHead>
-              <TableHead className={cn("cursor-pointer select-none hidden lg:table-cell", compactView && "!hidden")} onClick={() => toggleSort('vehicle')}>
-                <span className="flex items-center">Type <SortIcon col="vehicle" /></span>
-              </TableHead>
-              <TableHead className={cn("cursor-pointer select-none hidden md:table-cell", compactView && "!hidden")} onClick={() => toggleSort('investment_currency')}>
-                <span className="flex items-center">Ccy <SortIcon col="investment_currency" /></span>
-              </TableHead>
               {!isLiquidation && !compactView && (
                 <>
                   <TableHead className="cursor-pointer select-none hidden xl:table-cell text-right" onClick={() => toggleSort('total_shares')}>
@@ -195,15 +170,15 @@ export function PortfolioSection({
                 </>
               )}
               <TableHead className="cursor-pointer select-none text-right" onClick={() => toggleSort('total_invested')}>
-                <span className="flex items-center justify-end">Invested <SortIcon col="total_invested" /></span>
+                <span className="flex items-center justify-end">Invested ({dCcy}) <SortIcon col="total_invested" /></span>
               </TableHead>
               {!isLiquidation && (
                 <>
                   <TableHead className="cursor-pointer select-none text-right" onClick={() => toggleSort('current_value')}>
-                    <span className="flex items-center justify-end">Value <SortIcon col="current_value" /></span>
+                    <span className="flex items-center justify-end">Value ({dCcy}) <SortIcon col="current_value" /></span>
                   </TableHead>
                   <TableHead className="cursor-pointer select-none text-right" onClick={() => toggleSort('gainLoss')}>
-                    <span className="flex items-center justify-end">G/L <SortIcon col="gainLoss" /></span>
+                    <span className="flex items-center justify-end">G/L ({dCcy}) <SortIcon col="gainLoss" /></span>
                   </TableHead>
                   <TableHead className="cursor-pointer select-none text-right" onClick={() => toggleSort('moic')}>
                     <span className="flex items-center justify-end">MOIC <SortIcon col="moic" /></span>
@@ -216,7 +191,7 @@ export function PortfolioSection({
         <TableBody>
           {/* Section header */}
           <TableRow className="bg-secondary/50 hover:bg-secondary/50">
-            <TableCell colSpan={isLiquidation ? 6 : compactView ? COL_COUNT_COMPACT : COL_COUNT_FULL} className="py-2">
+            <TableCell colSpan={colCount} className="py-2">
               <div className="flex items-center justify-between">
                 <span className="font-heading font-semibold text-sm tracking-wide uppercase">
                   {title} ({companies.length})
@@ -235,14 +210,14 @@ export function PortfolioSection({
           </TableRow>
 
           {sorted.map((company) => {
-            const ccy = company.investment_currency || 'CHF'
-            const investedCHF = ccy === 'CHF'
-              ? company.total_invested
-              : company.total_invested * (company.original_fx_rate || 1)
-            const valueCHF = convertToCHF(company.current_value, ccy, fxRates)
-            const gainLossCHF = valueCHF - investedCHF
-            const gainLossOrig = getGainLossOrig(company)
-            const chfMoic = getCHFMoic(company, fxRates)
+            const origCcy = company.investment_currency || 'CHF'
+            const showShadow = origCcy !== dCcy
+
+            const investedDisplay = convertToDisplay(company.total_invested, origCcy, fxRates, dCcy)
+            const valueDisplay = convertToDisplay(company.current_value, origCcy, fxRates, dCcy)
+            const gainLossDisplay = valueDisplay - investedDisplay
+            const gainLossOrig = company.current_value - company.total_invested
+
             const isExpanded = expandedIds.has(company.company_id)
             const isWrittenDown = (company.moic ?? 0) < 0.25 && company.moic !== null
 
@@ -270,63 +245,52 @@ export function PortfolioSection({
                     </div>
                   </TableCell>
 
-                  <TableCell>
-                    <Badge variant={company.status === 'Active' ? 'default' : 'secondary'}>
-                      {company.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className={cn("hidden lg:table-cell", compactView && "!hidden")}>
-                    <Badge variant="outline">
-                      {vehicleLabels[company.vehicle || ''] || company.vehicle || '—'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className={cn("hidden md:table-cell text-sm", compactView && "!hidden")}>{ccy}</TableCell>
-
                   {!isLiquidation && !compactView && (
                     <>
                       <TableCell className="text-right font-mono tabular-nums hidden xl:table-cell">
                         {company.total_shares ? company.total_shares.toFixed(2) : '—'}
                       </TableCell>
                       <TableCell className="text-right font-mono tabular-nums hidden xl:table-cell">
-                        {company.latest_share_price ? formatCurrency(company.latest_share_price, ccy) : '—'}
+                        {company.latest_share_price ? formatCurrency(company.latest_share_price, origCcy) : '—'}
                       </TableCell>
                     </>
                   )}
 
+                  {/* Invested */}
                   <TableCell className="text-right font-mono tabular-nums">
-                    <div>{formatCurrency(company.total_invested, ccy)}</div>
-                    {ccy !== 'CHF' && (
-                      <div className="text-[10px] text-muted-foreground">{formatCurrency(investedCHF)}</div>
+                    <div>{formatCurrency(investedDisplay, dCcy)}</div>
+                    {showShadow && (
+                      <div className="text-[10px] text-muted-foreground">{formatCurrency(company.total_invested, origCcy)}</div>
                     )}
                   </TableCell>
 
                   {!isLiquidation && (
                     <>
+                      {/* Value */}
                       <TableCell className="text-right font-mono tabular-nums">
-                        <div>{formatCurrency(valueCHF)}</div>
-                        {ccy !== 'CHF' && (
-                          <div className="text-[10px] text-muted-foreground">{formatCurrency(company.current_value, ccy)}</div>
+                        <div>{formatCurrency(valueDisplay, dCcy)}</div>
+                        {showShadow && (
+                          <div className="text-[10px] text-muted-foreground">{formatCurrency(company.current_value, origCcy)}</div>
                         )}
                       </TableCell>
+
+                      {/* G/L */}
                       <TableCell className="text-right font-mono tabular-nums">
-                        <div className={valueColorClass(gainLossCHF)}>
-                          {gainLossCHF >= 0 ? '+' : ''}{formatCurrency(gainLossCHF)}
+                        <div className={valueColorClass(gainLossDisplay)}>
+                          {gainLossDisplay >= 0 ? '+' : ''}{formatCurrency(gainLossDisplay, dCcy)}
                         </div>
-                        {ccy !== 'CHF' && (
+                        {showShadow && (
                           <div className={cn('text-[10px]', valueColorClass(gainLossOrig))}>
-                            {gainLossOrig >= 0 ? '+' : ''}{formatCurrency(gainLossOrig, ccy)}
+                            {gainLossOrig >= 0 ? '+' : ''}{formatCurrency(gainLossOrig, origCcy)}
                           </div>
                         )}
                       </TableCell>
+
+                      {/* MOIC — single line */}
                       <TableCell className="text-right font-mono tabular-nums">
-                        <div className={cn('font-medium', moicColorClass(chfMoic))}>
-                          {formatMoic(chfMoic)}
+                        <div className={cn('font-medium', moicColorClass(company.moic))}>
+                          {formatMoic(company.moic)}
                         </div>
-                        {ccy !== 'CHF' && company.moic !== null && chfMoic !== company.moic && (
-                          <div className={cn('text-[10px]', moicColorClass(company.moic))}>
-                            {formatMoic(company.moic)}
-                          </div>
-                        )}
                       </TableCell>
                     </>
                   )}
@@ -335,8 +299,10 @@ export function PortfolioSection({
                 {isExpanded && (
                   <PortfolioExpandedRows
                     companyId={company.company_id}
-                    colSpan={isLiquidation ? 6 : compactView ? COL_COUNT_COMPACT : COL_COUNT_FULL}
+                    colSpan={colCount}
                     onViewDetail={onCompanyClick}
+                    displayCurrency={dCcy}
+                    compactView={compactView}
                   />
                 )}
               </Fragment>
@@ -348,15 +314,12 @@ export function PortfolioSection({
             <TableRow className="font-semibold">
               <TableCell />
               <TableCell>Total</TableCell>
-              <TableCell />
-              {!compactView && <TableCell className="hidden lg:table-cell" />}
-              {!compactView && <TableCell className="hidden md:table-cell" />}
               {!compactView && <TableCell className="hidden xl:table-cell" />}
               {!compactView && <TableCell className="hidden xl:table-cell" />}
-              <TableCell className="text-right font-mono tabular-nums">{formatCurrency(totalInvestedCHF)}</TableCell>
-              <TableCell className="text-right font-mono tabular-nums">{formatCurrency(totalValueCHF)}</TableCell>
-              <TableCell className={cn('text-right font-mono tabular-nums', valueColorClass(totalGainLossCHF))}>
-                {totalGainLossCHF >= 0 ? '+' : ''}{formatCurrency(totalGainLossCHF)}
+              <TableCell className="text-right font-mono tabular-nums">{formatCurrency(totalInvestedD, dCcy)}</TableCell>
+              <TableCell className="text-right font-mono tabular-nums">{formatCurrency(totalValueD, dCcy)}</TableCell>
+              <TableCell className={cn('text-right font-mono tabular-nums', valueColorClass(totalGainLossD))}>
+                {totalGainLossD >= 0 ? '+' : ''}{formatCurrency(totalGainLossD, dCcy)}
               </TableCell>
               <TableCell className={cn('text-right font-mono tabular-nums', moicColorClass(totalMoic))}>
                 {formatMoic(totalMoic)}

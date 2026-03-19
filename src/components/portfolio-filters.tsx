@@ -2,8 +2,10 @@
 
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { CurrencyToggle } from '@/components/currency-toggle'
 import { Search, RefreshCw, LayoutList, LayoutGrid, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { DisplayCurrency } from '@/lib/types'
 
 interface PortfolioFiltersProps {
   search: string
@@ -16,6 +18,8 @@ interface PortfolioFiltersProps {
   compactView?: boolean
   onCompactChange?: (compact: boolean) => void
   onExport?: () => void
+  displayCurrency?: DisplayCurrency
+  onCurrencyChange?: (currency: DisplayCurrency) => void
 }
 
 const vehicleOptions = ['All', 'fiduciary', 'direct', 'fund']
@@ -39,6 +43,8 @@ export function PortfolioFilters({
   compactView = false,
   onCompactChange,
   onExport,
+  displayCurrency = 'CHF',
+  onCurrencyChange,
 }: PortfolioFiltersProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center print:hidden">
@@ -90,7 +96,12 @@ export function PortfolioFilters({
       </div>
 
       {/* Action buttons */}
-      <div className="flex gap-1 ml-auto">
+      <div className="flex gap-1.5 items-center ml-auto">
+        {/* Currency toggle — Fix 1 */}
+        {onCurrencyChange && (
+          <CurrencyToggle value={displayCurrency} onChange={onCurrencyChange} />
+        )}
+
         {/* Compact toggle */}
         {onCompactChange && (
           <Button

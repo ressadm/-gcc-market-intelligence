@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { PortfolioCompany } from '@/lib/types'
+import type { DisplayCurrency, PortfolioCompany } from '@/lib/types'
 import { PortfolioSection } from './portfolio-section'
 
 interface PortfolioTableProps {
@@ -14,6 +14,7 @@ interface PortfolioTableProps {
   statusFilter: string
   onCompanyClick?: (companyId: string) => void
   compactView?: boolean
+  displayCurrency?: DisplayCurrency
 }
 
 export function PortfolioTable({
@@ -25,6 +26,7 @@ export function PortfolioTable({
   statusFilter,
   onCompanyClick,
   compactView,
+  displayCurrency,
 }: PortfolioTableProps) {
   const filtered = useMemo(() => {
     let result = companies
@@ -69,6 +71,7 @@ export function PortfolioTable({
         fxRates={fxRates}
         onCompanyClick={onCompanyClick}
         compactView={compactView}
+        displayCurrency={displayCurrency}
       />
     )
   }
@@ -87,6 +90,7 @@ export function PortfolioTable({
           showFooter={group.status === 'Active'}
           onCompanyClick={onCompanyClick}
           compactView={compactView}
+          displayCurrency={displayCurrency}
         />
       ))}
     </div>
