@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo, Fragment } from 'react'
-import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -18,7 +17,7 @@ import { cn } from '@/lib/utils'
 import { ArrowUp, ArrowDown, ArrowUpDown, ChevronRight, ChevronDown } from 'lucide-react'
 import { PortfolioExpandedRows } from './portfolio-expanded-row'
 
-type SortColumn = 'name' | 'status' | 'sector' | 'vehicle' | 'investment_currency' | 'total_invested' | 'current_value' | 'moic' | 'gainLoss' | 'total_shares' | 'latest_share_price'
+type SortColumn = 'name' | 'total_invested' | 'current_value' | 'moic' | 'gainLoss' | 'total_shares' | 'latest_share_price'
 type SortDirection = 'asc' | 'desc'
 
 const vehicleLabels: Record<string, string> = {
@@ -27,8 +26,10 @@ const vehicleLabels: Record<string, string> = {
   fund: 'LP Fund',
 }
 
-const COL_COUNT_FULL = 11
-const COL_COUNT_COMPACT = 7
+// Column counts: chevron + company + (shares + price if !compact && !liq) + invested + value + g/l + moic
+const COL_COUNT_FULL = 8   // chevron, company, shares, price, invested, value, g/l, moic
+const COL_COUNT_COMPACT = 6 // chevron, company, invested, value, g/l, moic
+const COL_COUNT_LIQ = 3     // chevron, company, invested
 
 function getInvestedCHF(c: PortfolioCompany): number {
   const ccy = c.investment_currency || 'CHF'
@@ -72,19 +73,13 @@ export function PortfolioSection({
   }
 
   const allIds = companies.map(c => c.company_id)
-
-  function expandAll() {
-    setExpandedIds(new Set(allIds))
-  }
-
-  function collapseAll() {
-    setExpandedIds(new Set())
-  }
+  function expandAll() { setExpandedIds(new Set(allIds)) }
+  function collapseAll() { setExpandedIds(new Set()) }
 
   const sorted = useMemo(() => {
     return [...companies].sort((a, b) => {
-      let aVal: string | number | boolean | null
-      let bVal: string | number | boolean | null
+      let aVal: string | number | null
+      let bVal: string | number | null
 
       switch (sortColumn) {
         case 'name':
@@ -142,13 +137,12 @@ export function PortfolioSection({
   }
 
   const dCcy = displayCurrency
+  const colCount = isLiquidation ? COL_COUNT_LIQ : compactView ? COL_COUNT_COMPACT : COL_COUNT_FULL
 
-  // Section totals in CHF first, then convert to display
+  // Section totals
   const totalInvestedCHF = sorted.reduce((sum, c) => sum + getInvestedCHF(c), 0)
   const totalValueCHF = sorted.reduce((sum, c) => sum + convertToCHF(c.current_value, c.investment_currency, fxRates), 0)
   const totalMoic = totalInvestedCHF > 0 ? totalValueCHF / totalInvestedCHF : 0
-
-  // Convert totals to display currency
   const totalInvestedD = dCcy === 'CHF' ? totalInvestedCHF : totalInvestedCHF / (fxRates[dCcy] || 1)
   const totalValueD = dCcy === 'CHF' ? totalValueCHF : totalValueCHF / (fxRates[dCcy] || 1)
   const totalGainLossD = totalValueD - totalInvestedD
@@ -164,15 +158,6 @@ export function PortfolioSection({
               <TableHead className="w-8" />
               <TableHead className="cursor-pointer select-none" onClick={() => toggleSort('name')}>
                 <span className="flex items-center">Company <SortIcon col="name" /></span>
-              </TableHead>
-              <TableHead className="cursor-pointer select-none" onClick={() => toggleSort('status')}>
-                <span className="flex items-center">Status <SortIcon col="status" /></span>
-              </TableHead>
-              <TableHead className={cn("cursor-pointer select-none hidden lg:table-cell", compactView && "!hidden")} onClick={() => toggleSort('vehicle')}>
-                <span className="flex items-center">Type <SortIcon col="vehicle" /></span>
-              </TableHead>
-              <TableHead className={cn("cursor-pointer select-none hidden md:table-cell", compactView && "!hidden")} onClick={() => toggleSort('investment_currency')}>
-                <span className="flex items-center">Ccy <SortIcon col="investment_currency" /></span>
               </TableHead>
               {!isLiquidation && !compactView && (
                 <>
@@ -206,7 +191,7 @@ export function PortfolioSection({
         <TableBody>
           {/* Section header */}
           <TableRow className="bg-secondary/50 hover:bg-secondary/50">
-            <TableCell colSpan={isLiquidation ? 6 : compactView ? COL_COUNT_COMPACT : COL_COUNT_FULL} className="py-2">
+            <TableCell colSpan={colCount} className="py-2">
               <div className="flex items-center justify-between">
                 <span className="font-heading font-semibold text-sm tracking-wide uppercase">
                   {title} ({companies.length})
@@ -228,13 +213,9 @@ export function PortfolioSection({
             const origCcy = company.investment_currency || 'CHF'
             const showShadow = origCcy !== dCcy
 
-            // Convert invested to display currency
             const investedDisplay = convertToDisplay(company.total_invested, origCcy, fxRates, dCcy)
-            // Convert value to display currency
             const valueDisplay = convertToDisplay(company.current_value, origCcy, fxRates, dCcy)
-            // G/L in display currency
             const gainLossDisplay = valueDisplay - investedDisplay
-            // G/L in original currency
             const gainLossOrig = company.current_value - company.total_invested
 
             const isExpanded = expandedIds.has(company.company_id)
@@ -264,18 +245,6 @@ export function PortfolioSection({
                     </div>
                   </TableCell>
 
-                  <TableCell>
-                    <Badge variant={company.status === 'Active' ? 'default' : 'secondary'}>
-                      {company.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className={cn("hidden lg:table-cell", compactView && "!hidden")}>
-                    <Badge variant="outline">
-                      {vehicleLabels[company.vehicle || ''] || company.vehicle || '—'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className={cn("hidden md:table-cell text-sm", compactView && "!hidden")}>{origCcy}</TableCell>
-
                   {!isLiquidation && !compactView && (
                     <>
                       <TableCell className="text-right font-mono tabular-nums hidden xl:table-cell">
@@ -287,7 +256,7 @@ export function PortfolioSection({
                     </>
                   )}
 
-                  {/* Invested — Fix 2: Line 1 = display ccy, Line 2 = original ccy */}
+                  {/* Invested */}
                   <TableCell className="text-right font-mono tabular-nums">
                     <div>{formatCurrency(investedDisplay, dCcy)}</div>
                     {showShadow && (
@@ -297,7 +266,7 @@ export function PortfolioSection({
 
                   {!isLiquidation && (
                     <>
-                      {/* Value — Fix 2: Line 1 = display ccy, Line 2 = original ccy */}
+                      {/* Value */}
                       <TableCell className="text-right font-mono tabular-nums">
                         <div>{formatCurrency(valueDisplay, dCcy)}</div>
                         {showShadow && (
@@ -305,7 +274,7 @@ export function PortfolioSection({
                         )}
                       </TableCell>
 
-                      {/* G/L — Fix 4: Line 1 = display ccy, Line 2 = original ccy */}
+                      {/* G/L */}
                       <TableCell className="text-right font-mono tabular-nums">
                         <div className={valueColorClass(gainLossDisplay)}>
                           {gainLossDisplay >= 0 ? '+' : ''}{formatCurrency(gainLossDisplay, dCcy)}
@@ -317,7 +286,7 @@ export function PortfolioSection({
                         )}
                       </TableCell>
 
-                      {/* MOIC — Fix 3: Single line only, original currency MOIC */}
+                      {/* MOIC — single line */}
                       <TableCell className="text-right font-mono tabular-nums">
                         <div className={cn('font-medium', moicColorClass(company.moic))}>
                           {formatMoic(company.moic)}
@@ -330,7 +299,7 @@ export function PortfolioSection({
                 {isExpanded && (
                   <PortfolioExpandedRows
                     companyId={company.company_id}
-                    colSpan={isLiquidation ? 6 : compactView ? COL_COUNT_COMPACT : COL_COUNT_FULL}
+                    colSpan={colCount}
                     onViewDetail={onCompanyClick}
                   />
                 )}
@@ -343,9 +312,6 @@ export function PortfolioSection({
             <TableRow className="font-semibold">
               <TableCell />
               <TableCell>Total</TableCell>
-              <TableCell />
-              {!compactView && <TableCell className="hidden lg:table-cell" />}
-              {!compactView && <TableCell className="hidden md:table-cell" />}
               {!compactView && <TableCell className="hidden xl:table-cell" />}
               {!compactView && <TableCell className="hidden xl:table-cell" />}
               <TableCell className="text-right font-mono tabular-nums">{formatCurrency(totalInvestedD, dCcy)}</TableCell>
