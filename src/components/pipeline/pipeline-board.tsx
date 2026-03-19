@@ -9,9 +9,10 @@ import { PipelineColumn } from './pipeline-column'
 interface PipelineBoardProps {
   deals: DealPipelineSummary[]
   isLoading: boolean
+  onDealClick?: (dealId: string) => void
 }
 
-export function PipelineBoard({ deals, isLoading }: PipelineBoardProps) {
+export function PipelineBoard({ deals, isLoading, onDealClick }: PipelineBoardProps) {
   const grouped = useMemo(() => {
     const map: Record<DealStage, DealPipelineSummary[]> = {
       discovered: [],
@@ -41,6 +42,7 @@ export function PipelineBoard({ deals, isLoading }: PipelineBoardProps) {
           key={stage}
           stage={stage}
           deals={grouped[stage]}
+          onDealClick={onDealClick}
         />
       ))}
     </div>

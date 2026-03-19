@@ -9,9 +9,10 @@ import { cn } from '@/lib/utils'
 interface PipelineColumnProps {
   stage: DealStage
   deals: DealPipelineSummary[]
+  onDealClick?: (dealId: string) => void
 }
 
-export function PipelineColumn({ stage, deals }: PipelineColumnProps) {
+export function PipelineColumn({ stage, deals, onDealClick }: PipelineColumnProps) {
   return (
     <div className="flex flex-col min-w-[200px] max-h-[calc(100vh-280px)]">
       <div className="flex items-center gap-2 mb-3 px-1">
@@ -28,7 +29,7 @@ export function PipelineColumn({ stage, deals }: PipelineColumnProps) {
           </p>
         ) : (
           deals.map((deal) => (
-            <DealCard key={deal.deal_id} deal={deal} />
+            <DealCard key={deal.deal_id} deal={deal} onClick={onDealClick} />
           ))
         )}
       </div>

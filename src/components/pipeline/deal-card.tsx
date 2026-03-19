@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatDaysAgo } from '@/lib/format'
@@ -10,12 +9,13 @@ import { Clock, AlertTriangle } from 'lucide-react'
 
 interface DealCardProps {
   deal: DealPipelineSummary
+  onClick?: (dealId: string) => void
 }
 
-export function DealCard({ deal }: DealCardProps) {
+export function DealCard({ deal, onClick }: DealCardProps) {
   return (
-    <Link href={`/pipeline/${deal.deal_id}`}>
-      <Card className="hover:border-primary/30 transition-colors cursor-pointer">
+    <div onClick={() => onClick?.(deal.deal_id)} className="cursor-pointer">
+      <Card className="hover:border-primary/30 transition-colors">
         <CardContent className="p-4 space-y-2">
           <p className="font-medium text-sm text-foreground truncate">
             {deal.deal_name}
@@ -57,6 +57,6 @@ export function DealCard({ deal }: DealCardProps) {
           )}
         </CardContent>
       </Card>
-    </Link>
+    </div>
   )
 }
