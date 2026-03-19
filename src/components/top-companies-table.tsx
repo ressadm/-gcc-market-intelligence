@@ -21,9 +21,10 @@ interface TopCompaniesTableProps {
   companies: PortfolioCompany[]
   fxRates: Record<string, number>
   isLoading?: boolean
+  onCompanyClick?: (companyId: string) => void
 }
 
-export function TopCompaniesTable({ companies, fxRates, isLoading }: TopCompaniesTableProps) {
+export function TopCompaniesTable({ companies, fxRates, isLoading, onCompanyClick }: TopCompaniesTableProps) {
   if (isLoading) {
     return (
       <Card>
@@ -82,23 +83,23 @@ export function TopCompaniesTable({ companies, fxRates, isLoading }: TopCompanie
             {sorted.map((company) => (
               <TableRow key={company.company_id}>
                 <TableCell className="font-medium">
-                  <Link
-                    href={`/portfolio/${company.company_id}`}
-                    className="hover:text-primary transition-colors hover:underline"
+                  <button
+                    onClick={() => onCompanyClick?.(company.company_id)}
+                    className="hover:text-primary transition-colors hover:underline text-left"
                   >
                     {company.name}
-                  </Link>
+                  </button>
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">
                   <Badge variant="secondary">{company.investment_currency}</Badge>
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="text-right font-mono tabular-nums">
                   {formatCurrency(company.total_invested, company.investment_currency || 'CHF')}
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="text-right font-mono tabular-nums">
                   {formatCurrency(company.valueCHF)}
                 </TableCell>
-                <TableCell className={cn('text-right tabular-nums', moicColorClass(company.moic))}>
+                <TableCell className={cn('text-right font-mono tabular-nums', moicColorClass(company.moic))}>
                   {formatMoic(company.moic)}
                 </TableCell>
               </TableRow>

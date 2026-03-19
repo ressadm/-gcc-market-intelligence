@@ -1,4 +1,4 @@
-import type { PortfolioCompany, PortfolioStats, CurrencyBreakdown, SectorBreakdown } from './types'
+import type { PortfolioCompany, PortfolioStats, CurrencyBreakdown, SectorBreakdown, SourceBreakdown, StageBreakdown } from './types'
 
 /**
  * Deterministic FX conversion — resolves Sprint 1 LLM arithmetic inconsistency.
@@ -19,6 +19,21 @@ export function convertToCHF(
 }
 
 /**
+ * Convert a CHF amount to a display currency.
+ * fxRates maps currency→CHF, so to get CHF→USD we divide by the USD→CHF rate.
+ */
+export function convertFromCHF(
+  amountCHF: number,
+  targetCurrency: string,
+  fxRates: Record<string, number>
+): number {
+  if (targetCurrency === 'CHF') return amountCHF
+  const rate = fxRates[targetCurrency]
+  if (!rate) return amountCHF
+  return amountCHF / rate
+}
+
+/**
  * Aggregate portfolio data into CHF-normalized stats.
  * All financial math is deterministic — pure arithmetic, no LLM.
  */
@@ -33,6 +48,8 @@ export function aggregatePortfolioCHF(
 
   const currencyMap = new Map<string, CurrencyBreakdown>()
   const sectorMap = new Map<string, SectorBreakdown>()
+  const sourceMap = new Map<string, SourceBreakdown>()
+  const stageMap = new Map<string, StageBreakdown>()
 
   // For weighted FX impact calculation
   let weightedMoicOrigSum = 0
@@ -85,6 +102,23 @@ export function aggregatePortfolioCHF(
     existingSector.investedCHF += investedCHF
     existingSector.currentValueCHF += currentCHF
     sectorMap.set(sector, existingSector)
+
+    // Source breakdown (vehicle)
+    const vehicleLabels: Record<string, string> = { fiduciary: 'Verve', direct: 'Direct', fund: 'LP Fund' }
+    const source = vehicleLabels[c.vehicle || ''] || c.vehicle || 'Unknown'
+    const existingSource = sourceMap.get(source) || { source, count: 0, investedCHF: 0, currentValueCHF: 0 }
+    existingSource.count++
+    existingSource.investedCHF += investedCHF
+    existingSource.currentValueCHF += currentCHF
+    sourceMap.set(source, existingSource)
+
+    // Stage breakdown
+    const stage = c.status || 'Unknown'
+    const existingStage = stageMap.get(stage) || { stage, count: 0, investedCHF: 0, currentValueCHF: 0 }
+    existingStage.count++
+    existingStage.investedCHF += investedCHF
+    existingStage.currentValueCHF += currentCHF
+    stageMap.set(stage, existingStage)
   }
 
   const totalValueCHF = totalCurrentValueCHF + totalDistributionsCHF
@@ -115,6 +149,10 @@ export function aggregatePortfolioCHF(
     currencyBreakdown: Array.from(currencyMap.values())
       .sort((a, b) => b.investedCHF - a.investedCHF),
     sectorBreakdown: Array.from(sectorMap.values())
+      .sort((a, b) => b.count - a.count),
+    sourceBreakdown: Array.from(sourceMap.values())
+      .sort((a, b) => b.investedCHF - a.investedCHF),
+    stageBreakdown: Array.from(stageMap.values())
       .sort((a, b) => b.count - a.count),
   }
 }

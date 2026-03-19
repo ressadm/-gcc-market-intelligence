@@ -42,6 +42,8 @@ export interface PortfolioStats {
   staleCount: number
   currencyBreakdown: CurrencyBreakdown[]
   sectorBreakdown: SectorBreakdown[]
+  sourceBreakdown: SourceBreakdown[]
+  stageBreakdown: StageBreakdown[]
 }
 
 export interface Transaction {
@@ -67,6 +69,22 @@ export interface CurrencyBreakdown {
 
 export interface SectorBreakdown {
   sector: string
+  count: number
+  investedCHF: number
+  currentValueCHF: number
+}
+
+export type DisplayCurrency = 'CHF' | 'USD'
+
+export interface SourceBreakdown {
+  source: string
+  count: number
+  investedCHF: number
+  currentValueCHF: number
+}
+
+export interface StageBreakdown {
+  stage: string
   count: number
   investedCHF: number
   currentValueCHF: number
@@ -148,5 +166,37 @@ export interface DealActivity {
   activity_type: string
   title: string
   content: string | null
+  created_at: string
+}
+
+// Agent Insights types
+
+export type InsightType =
+  | 'stale_valuation'
+  | 'fx_impact'
+  | 'deal_alert'
+  | 'portfolio_change'
+  | 'follow_on_signal'
+  | 'aging_alert'
+  | 'market_news'
+  | 'performance_alert'
+  | 'daily_summary'
+  | 'weekly_digest'
+
+export type InsightPriority = 'critical' | 'warning' | 'info'
+
+export interface AgentInsight {
+  id: string
+  insight_type: InsightType
+  entity_type: string | null
+  entity_id: string | null
+  title: string
+  body: string
+  priority: InsightPriority
+  action_url: string | null
+  is_read: boolean
+  is_dismissed: boolean
+  source_task_id: string | null
+  expires_at: string | null
   created_at: string
 }

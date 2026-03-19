@@ -26,6 +26,8 @@ const emptyStats: PortfolioStats = {
   staleCount: 0,
   currencyBreakdown: [],
   sectorBreakdown: [],
+  sourceBreakdown: [],
+  stageBreakdown: [],
 }
 
 export function usePortfolioStats(): UsePortfolioStatsReturn {
