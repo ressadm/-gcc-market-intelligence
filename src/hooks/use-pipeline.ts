@@ -6,6 +6,7 @@ import type { DealPipelineSummary } from '@/lib/types'
 
 interface UsePipelineReturn {
   deals: DealPipelineSummary[]
+  committedCapital: number
   isLoading: boolean
   error: string | null
   refetch: () => void
@@ -13,6 +14,7 @@ interface UsePipelineReturn {
 
 export function usePipeline(): UsePipelineReturn {
   const [deals, setDeals] = useState<DealPipelineSummary[]>([])
+  const [committedCapital, setCommittedCapital] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [fetchKey, setFetchKey] = useState(0)
@@ -25,15 +27,28 @@ export function usePipeline(): UsePipelineReturn {
       setError(null)
 
       try {
-        const { data, error: queryError } = await supabase
-          .from('deal_pipeline_summary')
-          .select('*')
-          .order('updated_at', { ascending: false })
+        // Fetch pipeline summary + committed capital in parallel
+        const [pipelineRes, committedRes] = await Promise.all([
+          supabase
+            .from('deal_pipeline_summary')
+            .select('*')
+            .order('updated_at', { ascending: false }),
+          supabase
+            .from('deals')
+            .select('allocation_target')
+            .eq('stage', 'committed'),
+        ])
 
-        if (queryError) throw new Error(queryError.message)
+        if (pipelineRes.error) throw new Error(pipelineRes.error.message)
         if (cancelled) return
 
-        setDeals(data as DealPipelineSummary[])
+        setDeals(pipelineRes.data as DealPipelineSummary[])
+
+        // Sum allocation_target for committed deals
+        const committedSum = (committedRes.data || []).reduce(
+          (sum, d) => sum + (d.allocation_target || 0), 0
+        )
+        setCommittedCapital(committedSum)
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Failed to fetch pipeline data')
@@ -49,6 +64,7 @@ export function usePipeline(): UsePipelineReturn {
 
   return {
     deals,
+    committedCapital,
     isLoading,
     error,
     refetch: () => setFetchKey(k => k + 1),

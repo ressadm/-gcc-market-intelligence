@@ -16,7 +16,7 @@ import { QuickAddDealDialog } from '@/components/pipeline/quick-add-deal-dialog'
 import { AlertCircle, RefreshCw, Inbox, Plus } from 'lucide-react'
 
 export default function PipelinePage() {
-  const { deals, isLoading, error, refetch } = usePipeline()
+  const { deals, committedCapital, isLoading, error, refetch } = usePipeline()
   const { stats } = usePortfolioStats()
   const { settings: appSettings } = useAppSettings()
   const [search, setSearch] = useState('')
@@ -45,9 +45,7 @@ export default function PipelinePage() {
     })
   }, [stageFiltered, search, sourceFilter])
 
-  // Committed pipeline capital = sum of allocation_target for committed deals
-  // We need to query deals table for this — for now approximate from pipeline summary
-  const committedCapital = 0 // placeholder — committed deals filtered by stage
+  // committedCapital comes from usePipeline() — live query of deals WHERE stage = 'committed'
 
   if (error) {
     return (
