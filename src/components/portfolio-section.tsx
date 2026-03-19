@@ -301,6 +301,8 @@ export function PortfolioSection({
                     companyId={company.company_id}
                     colSpan={colCount}
                     onViewDetail={onCompanyClick}
+                    displayCurrency={dCcy}
+                    compactView={compactView}
                   />
                 )}
               </Fragment>
