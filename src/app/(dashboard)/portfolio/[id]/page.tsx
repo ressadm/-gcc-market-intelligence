@@ -8,7 +8,7 @@ import { ArrowLeft } from 'lucide-react'
 
 export default function CompanyDetailPage({ params }: { params: { id: string } }) {
   const { id } = params
-  const { company, transactions, fxRates, isLoading, error } = useCompanyDetail(id)
+  const { company, transactions, fxRates, isLoading, error, refetch } = useCompanyDetail(id)
 
   if (isLoading) {
     return <CompanyDetailSkeleton />
@@ -42,6 +42,7 @@ export default function CompanyDetailPage({ params }: { params: { id: string } }
       company={company}
       transactions={transactions}
       fxRates={fxRates}
+      onRefresh={refetch}
     />
   )
 }

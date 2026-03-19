@@ -9,6 +9,7 @@ import {
   Briefcase,
   TrendingUp,
   Bot,
+  Settings,
   LogOut,
 } from 'lucide-react'
 
@@ -17,6 +18,7 @@ const navItems = [
   { href: '/portfolio', label: 'Portfolio', icon: Briefcase, enabled: true },
   { href: '/pipeline', label: 'Pipeline', icon: TrendingUp, enabled: true },
   { href: '/agents', label: 'Agents', icon: Bot, enabled: false },
+  { href: '/settings', label: 'Settings', icon: Settings, enabled: true },
 ]
 
 export function TopNav() {

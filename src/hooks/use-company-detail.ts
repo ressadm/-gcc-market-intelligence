@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { PortfolioCompany, FxRate, Transaction } from '@/lib/types'
 
@@ -10,6 +10,7 @@ interface UseCompanyDetailReturn {
   fxRates: Record<string, number>
   isLoading: boolean
   error: string | null
+  refetch: () => void
 }
 
 export function useCompanyDetail(companyId: string): UseCompanyDetailReturn {
@@ -18,6 +19,9 @@ export function useCompanyDetail(companyId: string): UseCompanyDetailReturn {
   const [fxRates, setFxRates] = useState<Record<string, number>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [fetchKey, setFetchKey] = useState(0)
+
+  const refetch = useCallback(() => setFetchKey((k) => k + 1), [])
 
   useEffect(() => {
     let cancelled = false
@@ -80,7 +84,7 @@ export function useCompanyDetail(companyId: string): UseCompanyDetailReturn {
 
     fetchData()
     return () => { cancelled = true }
-  }, [companyId])
+  }, [companyId, fetchKey])
 
-  return { company, transactions, fxRates, isLoading, error }
+  return { company, transactions, fxRates, isLoading, error, refetch }
 }
