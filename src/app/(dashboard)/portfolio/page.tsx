@@ -88,7 +88,7 @@ export default function PortfolioPage() {
       <h1 className="font-heading text-2xl font-bold print:text-xl">Portfolio</h1>
 
       {/* Fix 5: KPI strip responds to currency toggle */}
-      <KpiStrip stats={stats} isLoading={isLoading} displayCurrency={displayCurrency} fxRates={fxRates} />
+      <KpiStrip stats={stats} isLoading={isLoading} displayCurrency={displayCurrency} />
 
       <PortfolioFilters
         search={search}

@@ -146,7 +146,6 @@ export function PortfolioSection({
 
   // Section totals — invested uses HISTORICAL rates, value uses LIVE rates
   const totalInvestedD = sorted.reduce((sum, c) => sum + getInvestedDisplay(c, dCcy), 0)
-  const totalValueCHF = sorted.reduce((sum, c) => sum + convertToCHF(c.current_value, c.investment_currency, fxRates), 0)
   const totalValueD = sorted.reduce((sum, c) => sum + convertToDisplay(c.current_value, c.investment_currency || 'CHF', fxRates, dCcy), 0)
   const totalMoic = totalInvestedD > 0 ? totalValueD / totalInvestedD : 0
   const totalGainLossD = totalValueD - totalInvestedD

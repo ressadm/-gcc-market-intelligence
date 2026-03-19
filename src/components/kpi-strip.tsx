@@ -10,10 +10,9 @@ interface KpiStripProps {
   stats: PortfolioStats
   isLoading?: boolean
   displayCurrency?: DisplayCurrency
-  fxRates?: Record<string, number>
 }
 
-export function KpiStrip({ stats, isLoading, displayCurrency = 'CHF', fxRates = {} }: KpiStripProps) {
+export function KpiStrip({ stats, isLoading, displayCurrency = 'CHF' }: KpiStripProps) {
   if (isLoading) return <KpiStripSkeleton />
 
   const ccy = displayCurrency

@@ -88,7 +88,7 @@ export default function DashboardPage() {
 
       <SourceTabs value={sourceTab} onChange={setSourceTab} counts={sourceCounts} />
 
-      <KpiStrip stats={filteredStats} isLoading={isLoading} displayCurrency={displayCurrency} fxRates={fxRates} />
+      <KpiStrip stats={filteredStats} isLoading={isLoading} displayCurrency={displayCurrency} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
         <SectorChart data={filteredStats.sectorBreakdown} isLoading={isLoading} />
