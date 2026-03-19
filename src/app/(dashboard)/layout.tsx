@@ -9,7 +9,7 @@ export default function DashboardLayout({
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <TopNav />
-      <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 pb-20 md:pb-8">
+      <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 pb-20 md:pb-8 motion-safe:animate-fade-in">
         {children}
       </main>
       <BottomTabBar />

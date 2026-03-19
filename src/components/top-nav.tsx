@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Briefcase,
   TrendingUp,
+  FileText,
   Bot,
   Settings,
   LogOut,
@@ -17,6 +18,7 @@ const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard, enabled: true },
   { href: '/portfolio', label: 'Portfolio', icon: Briefcase, enabled: true },
   { href: '/pipeline', label: 'Pipeline', icon: TrendingUp, enabled: true },
+  { href: '/documents', label: 'Documents', icon: FileText, enabled: true },
   { href: '/agents', label: 'Agents', icon: Bot, enabled: false },
   { href: '/settings', label: 'Settings', icon: Settings, enabled: true },
 ]

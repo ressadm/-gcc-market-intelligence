@@ -45,3 +45,10 @@ export function formatDaysAgo(days: number): string {
   if (days === 1) return '1 day'
   return `${days} days`
 }
+
+export function formatFileSize(bytes: number | null): string {
+  if (bytes === null || bytes === undefined || bytes === 0) return '—'
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}

@@ -72,3 +72,19 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* Print-friendly layout — lightweight PDF via Ctrl+P */
+@media print {
+  nav,
+  .print\\:hidden,
+  [class*="bottom-tab-bar"] {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}

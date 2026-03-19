@@ -2,7 +2,7 @@
 
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, RefreshCw } from 'lucide-react'
+import { Search, RefreshCw, LayoutList, LayoutGrid, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface PortfolioFiltersProps {
@@ -13,6 +13,9 @@ interface PortfolioFiltersProps {
   statusFilter: string
   onStatusChange: (value: string) => void
   onRefresh: () => void
+  compactView?: boolean
+  onCompactChange?: (compact: boolean) => void
+  onExport?: () => void
 }
 
 const vehicleOptions = ['All', 'fiduciary', 'direct', 'fund']
@@ -33,9 +36,12 @@ export function PortfolioFilters({
   statusFilter,
   onStatusChange,
   onRefresh,
+  compactView = false,
+  onCompactChange,
+  onExport,
 }: PortfolioFiltersProps) {
   return (
-    <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+    <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center print:hidden">
       {/* Search */}
       <div className="relative w-full sm:w-64">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -83,10 +89,33 @@ export function PortfolioFilters({
         ))}
       </div>
 
-      {/* Refresh */}
-      <Button variant="ghost" size="sm" onClick={onRefresh} aria-label="Refresh">
-        <RefreshCw size={14} />
-      </Button>
+      {/* Action buttons */}
+      <div className="flex gap-1 ml-auto">
+        {/* Compact toggle */}
+        {onCompactChange && (
+          <Button
+            variant={compactView ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => onCompactChange(!compactView)}
+            aria-label={compactView ? 'Detailed view' : 'Compact view'}
+            title={compactView ? 'Switch to detailed view' : 'Switch to compact view'}
+          >
+            {compactView ? <LayoutList size={14} /> : <LayoutGrid size={14} />}
+          </Button>
+        )}
+
+        {/* Export */}
+        {onExport && (
+          <Button variant="ghost" size="sm" onClick={onExport} aria-label="Export CSV" title="Export to CSV">
+            <Download size={14} />
+          </Button>
+        )}
+
+        {/* Refresh */}
+        <Button variant="ghost" size="sm" onClick={onRefresh} aria-label="Refresh">
+          <RefreshCw size={14} />
+        </Button>
+      </div>
     </div>
   )
 }
