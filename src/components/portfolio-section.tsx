@@ -27,7 +27,8 @@ const vehicleLabels: Record<string, string> = {
   fund: 'LP Fund',
 }
 
-const COL_COUNT = 11
+const COL_COUNT_FULL = 11
+const COL_COUNT_COMPACT = 7
 
 function getGainLossCHF(c: PortfolioCompany, fxRates: Record<string, number>): number {
   const ccy = c.investment_currency || 'CHF'
@@ -54,6 +55,7 @@ interface PortfolioSectionProps {
   showHeader?: boolean
   showFooter?: boolean
   onCompanyClick?: (companyId: string) => void
+  compactView?: boolean
 }
 
 export function PortfolioSection({
@@ -64,6 +66,7 @@ export function PortfolioSection({
   showHeader = true,
   showFooter = true,
   onCompanyClick,
+  compactView = false,
 }: PortfolioSectionProps) {
   const [sortColumn, setSortColumn] = useState<SortColumn>('moic')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
@@ -175,13 +178,13 @@ export function PortfolioSection({
               <TableHead className="cursor-pointer select-none" onClick={() => toggleSort('status')}>
                 <span className="flex items-center">Status <SortIcon col="status" /></span>
               </TableHead>
-              <TableHead className="cursor-pointer select-none hidden lg:table-cell" onClick={() => toggleSort('vehicle')}>
+              <TableHead className={cn("cursor-pointer select-none hidden lg:table-cell", compactView && "!hidden")} onClick={() => toggleSort('vehicle')}>
                 <span className="flex items-center">Type <SortIcon col="vehicle" /></span>
               </TableHead>
-              <TableHead className="cursor-pointer select-none hidden md:table-cell" onClick={() => toggleSort('investment_currency')}>
+              <TableHead className={cn("cursor-pointer select-none hidden md:table-cell", compactView && "!hidden")} onClick={() => toggleSort('investment_currency')}>
                 <span className="flex items-center">Ccy <SortIcon col="investment_currency" /></span>
               </TableHead>
-              {!isLiquidation && (
+              {!isLiquidation && !compactView && (
                 <>
                   <TableHead className="cursor-pointer select-none hidden xl:table-cell text-right" onClick={() => toggleSort('total_shares')}>
                     <span className="flex items-center justify-end">Shares <SortIcon col="total_shares" /></span>
@@ -213,7 +216,7 @@ export function PortfolioSection({
         <TableBody>
           {/* Section header */}
           <TableRow className="bg-secondary/50 hover:bg-secondary/50">
-            <TableCell colSpan={isLiquidation ? 6 : COL_COUNT} className="py-2">
+            <TableCell colSpan={isLiquidation ? 6 : compactView ? COL_COUNT_COMPACT : COL_COUNT_FULL} className="py-2">
               <div className="flex items-center justify-between">
                 <span className="font-heading font-semibold text-sm tracking-wide uppercase">
                   {title} ({companies.length})
@@ -272,14 +275,14 @@ export function PortfolioSection({
                       {company.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell">
+                  <TableCell className={cn("hidden lg:table-cell", compactView && "!hidden")}>
                     <Badge variant="outline">
                       {vehicleLabels[company.vehicle || ''] || company.vehicle || '—'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell text-sm">{ccy}</TableCell>
+                  <TableCell className={cn("hidden md:table-cell text-sm", compactView && "!hidden")}>{ccy}</TableCell>
 
-                  {!isLiquidation && (
+                  {!isLiquidation && !compactView && (
                     <>
                       <TableCell className="text-right font-mono tabular-nums hidden xl:table-cell">
                         {company.total_shares ? company.total_shares.toFixed(2) : '—'}
@@ -332,7 +335,7 @@ export function PortfolioSection({
                 {isExpanded && (
                   <PortfolioExpandedRows
                     companyId={company.company_id}
-                    colSpan={isLiquidation ? 6 : COL_COUNT}
+                    colSpan={isLiquidation ? 6 : compactView ? COL_COUNT_COMPACT : COL_COUNT_FULL}
                     onViewDetail={onCompanyClick}
                   />
                 )}
@@ -346,10 +349,10 @@ export function PortfolioSection({
               <TableCell />
               <TableCell>Total</TableCell>
               <TableCell />
-              <TableCell className="hidden lg:table-cell" />
-              <TableCell className="hidden md:table-cell" />
-              <TableCell className="hidden xl:table-cell" />
-              <TableCell className="hidden xl:table-cell" />
+              {!compactView && <TableCell className="hidden lg:table-cell" />}
+              {!compactView && <TableCell className="hidden md:table-cell" />}
+              {!compactView && <TableCell className="hidden xl:table-cell" />}
+              {!compactView && <TableCell className="hidden xl:table-cell" />}
               <TableCell className="text-right font-mono tabular-nums">{formatCurrency(totalInvestedCHF)}</TableCell>
               <TableCell className="text-right font-mono tabular-nums">{formatCurrency(totalValueCHF)}</TableCell>
               <TableCell className={cn('text-right font-mono tabular-nums', valueColorClass(totalGainLossCHF))}>

@@ -169,6 +169,27 @@ export interface DealActivity {
   created_at: string
 }
 
+// Document types
+
+export type DocumentType = 'pitch_deck' | 'cap_table' | 'financial_model' | 'legal' | 'other'
+
+export interface Document {
+  id: string
+  title: string
+  file_name: string
+  file_size: number | null
+  file_type: string | null
+  storage_path: string
+  company_id: string | null
+  deal_id: string | null
+  document_type: DocumentType
+  uploaded_by: string | null
+  created_at: string
+  updated_at: string
+  // Joined fields
+  company_name?: string | null
+}
+
 // Agent Insights types
 
 export type InsightType =

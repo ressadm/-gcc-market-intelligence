@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState, useCallback } from 'react'
+import { useReducedMotion } from '@/hooks/use-reduced-motion'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -35,14 +36,22 @@ const typeBadgeColors: Record<string, string> = {
 
 export function CompanyDrawer({ companyId, onClose }: CompanyDrawerProps) {
   const { company, transactions, fxRates, isLoading, error } = useCompanyDetail(companyId)
+  const prefersReducedMotion = useReducedMotion()
+  const [closing, setClosing] = useState(false)
+
+  const handleClose = useCallback(() => {
+    if (prefersReducedMotion) { onClose(); return }
+    setClosing(true)
+    setTimeout(onClose, 150)
+  }, [onClose, prefersReducedMotion])
 
   useEffect(() => {
     function handleEscape(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') handleClose()
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [onClose])
+  }, [handleClose])
 
   // Prevent body scroll
   useEffect(() => {
@@ -54,12 +63,15 @@ export function CompanyDrawer({ companyId, onClose }: CompanyDrawerProps) {
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 z-40 bg-black/50"
-        onClick={onClose}
+        className={cn("fixed inset-0 z-40 bg-black/50", !prefersReducedMotion && "animate-overlay-in")}
+        onClick={handleClose}
       />
 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 z-50 h-full w-full sm:w-[480px] bg-background border-l border-border flex flex-col">
+      <div className={cn(
+        "fixed right-0 top-0 z-50 h-full w-full sm:w-[480px] bg-background border-l border-border flex flex-col",
+        !prefersReducedMotion && (closing ? "animate-slide-out-right" : "animate-slide-in-right")
+      )}>
         {/* Header */}
         <div className="sticky top-0 bg-background px-6 py-4 border-b border-border flex items-start justify-between gap-3 z-10">
           {isLoading ? (
@@ -86,7 +98,7 @@ export function CompanyDrawer({ companyId, onClose }: CompanyDrawerProps) {
             <span className="text-muted-foreground">Company not found</span>
           )}
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded"
             aria-label="Close"
           >
@@ -166,7 +178,7 @@ export function CompanyDrawer({ companyId, onClose }: CompanyDrawerProps) {
               <Link
                 href={`/portfolio/${companyId}`}
                 className="flex items-center gap-1.5 text-sm text-primary hover:underline"
-                onClick={onClose}
+                onClick={handleClose}
               >
                 View full detail
                 <ArrowRight size={14} />

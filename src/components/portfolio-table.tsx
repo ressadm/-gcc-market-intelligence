@@ -13,6 +13,7 @@ interface PortfolioTableProps {
   vehicleFilter: string
   statusFilter: string
   onCompanyClick?: (companyId: string) => void
+  compactView?: boolean
 }
 
 export function PortfolioTable({
@@ -23,6 +24,7 @@ export function PortfolioTable({
   vehicleFilter,
   statusFilter,
   onCompanyClick,
+  compactView,
 }: PortfolioTableProps) {
   const filtered = useMemo(() => {
     let result = companies
@@ -66,6 +68,7 @@ export function PortfolioTable({
         companies={filtered}
         fxRates={fxRates}
         onCompanyClick={onCompanyClick}
+        compactView={compactView}
       />
     )
   }
@@ -83,6 +86,7 @@ export function PortfolioTable({
           isLiquidation={group.status === 'In Liquidation' || group.status === 'Written Off'}
           showFooter={group.status === 'Active'}
           onCompanyClick={onCompanyClick}
+          compactView={compactView}
         />
       ))}
     </div>

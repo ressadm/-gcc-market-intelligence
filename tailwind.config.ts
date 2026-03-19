@@ -61,6 +61,30 @@ const config: Config = {
         heading: ["Inter", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
       },
+      keyframes: {
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(4px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "slide-in-right": {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
+        "slide-out-right": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(100%)" },
+        },
+        "overlay-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+      },
+      animation: {
+        "fade-in": "fade-in 200ms ease-out",
+        "slide-in-right": "slide-in-right 200ms ease-out",
+        "slide-out-right": "slide-out-right 150ms ease-in",
+        "overlay-in": "overlay-in 150ms ease-out",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

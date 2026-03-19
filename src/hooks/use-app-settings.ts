@@ -5,10 +5,12 @@ import { supabase } from '@/lib/supabase'
 
 export interface AppSettings {
   investment_budget_chf: number
+  portfolio_compact_view: boolean
 }
 
 const DEFAULTS: AppSettings = {
   investment_budget_chf: 1_000_000,
+  portfolio_compact_view: false,
 }
 
 export function useAppSettings() {
@@ -34,6 +36,9 @@ export function useAppSettings() {
     for (const row of data || []) {
       if (row.key === 'investment_budget_chf') {
         merged.investment_budget_chf = Number(row.value) || DEFAULTS.investment_budget_chf
+      }
+      if (row.key === 'portfolio_compact_view') {
+        merged.portfolio_compact_view = row.value === 'true'
       }
     }
     setSettings(merged)
