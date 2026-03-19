@@ -1,8 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -12,16 +14,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { AddTransactionDialog } from '@/components/add-transaction-dialog'
+import { UpdateValuationDialog } from '@/components/update-valuation-dialog'
 import { formatCurrency, formatCurrencyPrecise, formatMoic, formatDate, moicColorClass, valueColorClass } from '@/lib/format'
 import { convertToCHF } from '@/lib/fx'
 import type { PortfolioCompany, Transaction } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { ArrowLeft, AlertCircle } from 'lucide-react'
+import { ArrowLeft, AlertCircle, Plus, RefreshCw } from 'lucide-react'
 
 interface CompanyDetailProps {
   company: PortfolioCompany
   transactions: Transaction[]
   fxRates: Record<string, number>
+  onRefresh?: () => void
 }
 
 const typeBadgeColors: Record<string, string> = {
@@ -33,7 +38,9 @@ const typeBadgeColors: Record<string, string> = {
   RECAP: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
 }
 
-export function CompanyDetail({ company, transactions, fxRates }: CompanyDetailProps) {
+export function CompanyDetail({ company, transactions, fxRates, onRefresh }: CompanyDetailProps) {
+  const [showAddTxn, setShowAddTxn] = useState(false)
+  const [showUpdateVal, setShowUpdateVal] = useState(false)
   const ccy = company.investment_currency || 'CHF'
   // Invested: historical FX (locked at investment date)
   const investedCHF = ccy === 'CHF'
@@ -112,7 +119,28 @@ export function CompanyDetail({ company, transactions, fxRates }: CompanyDetailP
 
       {/* Transaction History */}
       <div>
-        <h2 className="font-heading text-lg font-semibold mb-3">Transaction History</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-heading text-lg font-semibold">Transaction History</h2>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowUpdateVal(true)}
+              className="text-xs"
+            >
+              <RefreshCw size={12} className="mr-1" />
+              Update Valuation
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setShowAddTxn(true)}
+              className="text-xs"
+            >
+              <Plus size={12} className="mr-1" />
+              Add Transaction
+            </Button>
+          </div>
+        </div>
         {transactions.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">No transactions recorded</p>
         ) : (
@@ -184,6 +212,26 @@ export function CompanyDetail({ company, transactions, fxRates }: CompanyDetailP
           </div>
         )}
       </div>
+
+      <AddTransactionDialog
+        companyId={company.company_id}
+        companyName={company.name}
+        companyCurrency={ccy}
+        open={showAddTxn}
+        onOpenChange={setShowAddTxn}
+        onSuccess={onRefresh}
+      />
+
+      <UpdateValuationDialog
+        companyId={company.company_id}
+        companyName={company.name}
+        companyCurrency={ccy}
+        currentSharePrice={company.latest_share_price}
+        totalShares={company.total_shares}
+        open={showUpdateVal}
+        onOpenChange={setShowUpdateVal}
+        onSuccess={onRefresh}
+      />
     </div>
   )
 }

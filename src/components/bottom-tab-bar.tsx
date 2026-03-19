@@ -7,14 +7,14 @@ import {
   LayoutDashboard,
   Briefcase,
   TrendingUp,
-  Bot,
+  Settings,
 } from 'lucide-react'
 
 const tabs = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/portfolio', label: 'Portfolio', icon: Briefcase },
   { href: '/pipeline', label: 'Pipeline', icon: TrendingUp },
-  { href: '/agents', label: 'Agents', icon: Bot },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export function BottomTabBar() {

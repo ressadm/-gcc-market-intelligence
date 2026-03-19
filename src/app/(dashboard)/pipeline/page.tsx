@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { usePipeline } from '@/hooks/use-pipeline'
 import { usePortfolioStats } from '@/hooks/use-portfolio-stats'
+import { useAppSettings } from '@/hooks/use-app-settings'
 import { PipelineBoard } from '@/components/pipeline/pipeline-board'
 import { PipelineList } from '@/components/pipeline/pipeline-list'
 import { PipelineKpiStrip } from '@/components/pipeline/pipeline-kpi-strip'
@@ -11,19 +12,19 @@ import { CapitalBar } from '@/components/pipeline/capital-bar'
 import { ViewToggle, type PipelineView } from '@/components/pipeline/view-toggle'
 import { StageTabs, getStageFilter, type StageFilter } from '@/components/pipeline/stage-tabs'
 import { DealDrawer } from '@/components/pipeline/deal-drawer'
+import { QuickAddDealDialog } from '@/components/pipeline/quick-add-deal-dialog'
 import { AlertCircle, RefreshCw, Inbox, Plus } from 'lucide-react'
-import Link from 'next/link'
-
-const BUDGET_CHF = 1_000_000 // from app_settings — hardcoded for now
 
 export default function PipelinePage() {
   const { deals, isLoading, error, refetch } = usePipeline()
   const { stats } = usePortfolioStats()
+  const { settings: appSettings } = useAppSettings()
   const [search, setSearch] = useState('')
   const [sourceFilter, setSourceFilter] = useState('All')
   const [view, setView] = useState<PipelineView>('list')
   const [stageFilter, setStageFilter] = useState<StageFilter>('active')
   const [drawerDealId, setDrawerDealId] = useState<string | null>(null)
+  const [showQuickAdd, setShowQuickAdd] = useState(false)
 
   const availableSources = useMemo(() => {
     const sources = new Set<string>()
@@ -71,20 +72,20 @@ export default function PipelinePage() {
         <h1 className="font-heading text-2xl font-bold">Pipeline</h1>
         <div className="flex items-center gap-3">
           <ViewToggle value={view} onChange={setView} />
-          <Link
-            href="/pipeline/new"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
+          <button
+            onClick={() => setShowQuickAdd(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
           >
             <Plus size={16} />
             New Deal
-          </Link>
+          </button>
         </div>
       </div>
 
       <CapitalBar
         deployed={stats.totalInvestedCHF}
         committed={committedCapital}
-        budget={BUDGET_CHF}
+        budget={appSettings.investment_budget_chf}
       />
 
       <PipelineKpiStrip deals={filtered} isLoading={isLoading} />
@@ -129,6 +130,12 @@ export default function PipelinePage() {
           onUpdate={refetch}
         />
       )}
+
+      <QuickAddDealDialog
+        open={showQuickAdd}
+        onOpenChange={setShowQuickAdd}
+        onSuccess={refetch}
+      />
     </div>
   )
 }

@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDealDetail } from '@/hooks/use-deal-detail'
@@ -14,6 +13,8 @@ import type { DealStage } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { X, ArrowRight, ThumbsUp, Minus, ThumbsDown, Loader2 } from 'lucide-react'
 import { DealActivityTimeline } from '@/components/deal-detail/deal-activity-timeline'
+import { CloseDealDialog } from '@/components/pipeline/close-deal-dialog'
+import { PassDealDialog } from '@/components/pipeline/pass-deal-dialog'
 
 interface DealDrawerProps {
   dealId: string
@@ -34,9 +35,8 @@ type ThumbValue = 1 | 0 | -1
 export function DealDrawer({ dealId, onClose, onUpdate }: DealDrawerProps) {
   const { deal, activities, isLoading, error } = useDealDetail(dealId)
   const [advancing, setAdvancing] = useState(false)
-  const [passing, setPassing] = useState(false)
-  const [passReason, setPassReason] = useState('')
   const [showPassDialog, setShowPassDialog] = useState(false)
+  const [showCloseDialog, setShowCloseDialog] = useState(false)
 
   useEffect(() => {
     function handleEscape(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
@@ -54,6 +54,12 @@ export function DealDrawer({ dealId, onClose, onUpdate }: DealDrawerProps) {
     const next = NEXT_STAGE[deal.stage]
     if (!next) return
 
+    // If advancing from committed → closed, show the Close Deal dialog
+    if (deal.stage === 'committed') {
+      setShowCloseDialog(true)
+      return
+    }
+
     setAdvancing(true)
     await supabase.from('deals').update({ stage: next }).eq('id', dealId)
     await supabase.from('deal_activities').insert({
@@ -65,25 +71,6 @@ export function DealDrawer({ dealId, onClose, onUpdate }: DealDrawerProps) {
     onUpdate?.()
     onClose()
   }, [deal, dealId, onClose, onUpdate])
-
-  const passDeal = useCallback(async () => {
-    if (!deal) return
-    setPassing(true)
-    await supabase.from('deals').update({
-      stage: 'passed',
-      decision: 'pass',
-      decision_reason: passReason || null,
-    }).eq('id', dealId)
-    await supabase.from('deal_activities').insert({
-      deal_id: dealId,
-      activity_type: 'decision',
-      title: 'Passed',
-      content: passReason || null,
-    })
-    setPassing(false)
-    onUpdate?.()
-    onClose()
-  }, [deal, dealId, passReason, onClose, onUpdate])
 
   const updateEvaluation = useCallback(async (field: string, value: ThumbValue) => {
     if (!deal) return
@@ -258,43 +245,40 @@ export function DealDrawer({ dealId, onClose, onUpdate }: DealDrawerProps) {
                 Advance to {STAGE_LABELS[NEXT_STAGE[deal.stage]!]}
               </Button>
             )}
-            {!showPassDialog ? (
-              <Button
-                variant="outline"
-                onClick={() => setShowPassDialog(true)}
-                className="text-red-400 border-red-500/30 hover:bg-red-500/10"
-              >
-                Pass
-              </Button>
-            ) : (
-              <div className="flex items-center gap-2 flex-1">
-                <Input
-                  placeholder="Reason (optional)"
-                  value={passReason}
-                  onChange={e => setPassReason(e.target.value)}
-                  className="flex-1 text-sm"
-                  autoFocus
-                />
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={passDeal}
-                  disabled={passing}
-                >
-                  {passing ? <Loader2 size={14} className="animate-spin" /> : 'Confirm Pass'}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => { setShowPassDialog(false); setPassReason('') }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            )}
+            <Button
+              variant="outline"
+              onClick={() => setShowPassDialog(true)}
+              className="text-red-400 border-red-500/30 hover:bg-red-500/10"
+            >
+              Pass
+            </Button>
           </div>
         )}
       </div>
+
+      {deal && (
+        <>
+          <CloseDealDialog
+            deal={deal}
+            open={showCloseDialog}
+            onOpenChange={setShowCloseDialog}
+            onSuccess={() => {
+              onUpdate?.()
+              onClose()
+            }}
+          />
+          <PassDealDialog
+            dealId={dealId}
+            dealName={deal.deal_name}
+            open={showPassDialog}
+            onOpenChange={setShowPassDialog}
+            onSuccess={() => {
+              onUpdate?.()
+              onClose()
+            }}
+          />
+        </>
+      )}
     </>
   )
 }
