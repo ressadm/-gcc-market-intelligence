@@ -7,6 +7,25 @@ import { TableCell, TableRow } from '@/components/ui/table'
 import { formatCurrency, formatCurrencyPrecise, formatDate, formatMoic, moicColorClass, valueColorClass } from '@/lib/format'
 import { convertToDisplay } from '@/lib/fx'
 import type { DisplayCurrency, Transaction } from '@/lib/types'
+
+/**
+ * Get transaction invested amount in the display currency using HISTORICAL FX rates.
+ * For invested amounts, we must use the rate locked at the transaction date, NOT today's rate.
+ */
+function getTxnAmountInDisplayCurrency(txn: Transaction, displayCurrency: string): number {
+  switch (displayCurrency) {
+    case 'CHF':
+      // Use stored historical orig→CHF rate
+      return txn.amount_orig * (txn.fx_rate_orig_to_chf || 1)
+    case 'USD':
+      // Use stored historical orig→USD rate (falls back to orig amount if not set)
+      return txn.fx_rate_orig_to_usd != null
+        ? txn.amount_orig * txn.fx_rate_orig_to_usd
+        : txn.amount_orig // fallback: no USD rate stored yet
+    default:
+      return txn.amount_orig * (txn.fx_rate_orig_to_chf || 1)
+  }
+}
 import { cn } from '@/lib/utils'
 import { ArrowRight } from 'lucide-react'
 
@@ -97,15 +116,16 @@ export function PortfolioExpandedRows({
   const blendedFx = sumOrigCash > 0 ? sumChfCash / sumOrigCash : null
   const roundCount = cashTxns.length
 
-  // Summary in display currency
-  const sumDisplayCash = convertToDisplay(sumOrigCash, origCcy, fxRates, dCcy)
+  // Summary invested: use HISTORICAL rates per transaction
+  const sumDisplayCash = cashTxns.reduce((s, t) => s + getTxnAmountInDisplayCurrency(t, dCcy), 0)
 
-  // Summary value + G/L for cash transactions
+  // Summary value: use LIVE rates (mark-to-market)
   const sumValueOrig = cashTxns.reduce((s, t) => {
     const v = getTranchValueOrig(t)
     return v !== null ? s + v : s
   }, 0)
   const sumValueDisplay = convertToDisplay(sumValueOrig, origCcy, fxRates, dCcy)
+  // P&L = Value(live) - Invested(historical)
   const sumGainLossDisplay = sumValueDisplay - sumDisplayCash
   const sumMoic = sumOrigCash > 0 ? sumValueOrig / sumOrigCash : null
 
@@ -114,12 +134,14 @@ export function PortfolioExpandedRows({
   return (
     <>
       {transactions.map((txn) => {
-        const txnAmountDisplay = convertToDisplay(txn.amount_orig, origCcy, fxRates, dCcy)
+        // Invested: HISTORICAL rate per transaction
+        const txnAmountDisplay = getTxnAmountInDisplayCurrency(txn, dCcy)
         const tranchValueOrig = getTranchValueOrig(txn)
         const hasValue = tranchValueOrig !== null
+        // Value: LIVE rate (mark-to-market)
         const tranchValueDisplay = hasValue ? convertToDisplay(tranchValueOrig, origCcy, fxRates, dCcy) : null
 
-        // G/L: value - invested (both in display currency)
+        // G/L: Value(live) - Invested(historical), both in display currency
         const canShowGL = hasValue && EQUITY_TYPES.has(txn.type)
         const glDisplay = canShowGL ? tranchValueDisplay! - txnAmountDisplay : null
         const glOrig = canShowGL ? tranchValueOrig! - txn.amount_orig : null

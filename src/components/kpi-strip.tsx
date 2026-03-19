@@ -3,7 +3,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatCurrency, formatMoic, moicColorClass, valueColorClass } from '@/lib/format'
-import { convertFromCHF } from '@/lib/fx'
 import type { PortfolioStats, DisplayCurrency } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -18,12 +17,11 @@ export function KpiStrip({ stats, isLoading, displayCurrency = 'CHF', fxRates = 
   if (isLoading) return <KpiStripSkeleton />
 
   const ccy = displayCurrency
-  const convert = (chf: number) =>
-    ccy === 'CHF' ? chf : convertFromCHF(chf, ccy, fxRates)
 
-  const invested = convert(stats.totalInvestedCHF)
-  const nav = convert(stats.totalCurrentValueCHF)
-  const pnl = convert(stats.unrealizedPnlCHF)
+  // Use pre-computed per-currency stats (historical for invested, live for value)
+  const invested = ccy === 'CHF' ? stats.totalInvestedCHF : stats.totalInvestedUSD
+  const nav = ccy === 'CHF' ? stats.totalCurrentValueCHF : stats.totalCurrentValueUSD
+  const pnl = ccy === 'CHF' ? stats.unrealizedPnlCHF : stats.unrealizedPnlUSD
 
   const pnlSign = pnl >= 0 ? '+' : ''
   const fxSign = stats.fxImpactPct >= 0 ? '+' : ''
@@ -44,8 +42,8 @@ export function KpiStrip({ stats, isLoading, displayCurrency = 'CHF', fxRates = 
     },
     {
       label: 'Portfolio MOIC',
-      value: formatMoic(stats.portfolioMoic),
-      valueClassName: moicColorClass(stats.portfolioMoic),
+      value: formatMoic(ccy === 'CHF' ? stats.portfolioMoicCHF : stats.portfolioMoicUSD),
+      valueClassName: moicColorClass(ccy === 'CHF' ? stats.portfolioMoicCHF : stats.portfolioMoicUSD),
     },
     {
       label: 'FX Impact',

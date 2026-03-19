@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatCurrency, formatMoic, moicColorClass, valueColorClass } from '@/lib/format'
-import { convertToCHF, convertToDisplay } from '@/lib/fx'
+import { convertToCHF, convertToDisplay, getInvestedInDisplayCurrency } from '@/lib/fx'
 import type { DisplayCurrency, PortfolioCompany } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { ArrowUp, ArrowDown, ArrowUpDown, ChevronRight, ChevronDown } from 'lucide-react'
@@ -31,9 +31,14 @@ const COL_COUNT_FULL = 8   // chevron, company, shares, price, invested, value, 
 const COL_COUNT_COMPACT = 6 // chevron, company, invested, value, g/l, moic
 const COL_COUNT_LIQ = 3     // chevron, company, invested
 
+/** Get invested in CHF using pre-computed historical rates from DB */
 function getInvestedCHF(c: PortfolioCompany): number {
-  const ccy = c.investment_currency || 'CHF'
-  return ccy === 'CHF' ? c.total_invested : c.total_invested * (c.original_fx_rate || 1)
+  return c.total_invested_chf
+}
+
+/** Get invested in display currency using pre-computed historical rates */
+function getInvestedDisplay(c: PortfolioCompany, dCcy: DisplayCurrency): number {
+  return getInvestedInDisplayCurrency(c, dCcy)
 }
 
 interface PortfolioSectionProps {
@@ -139,12 +144,11 @@ export function PortfolioSection({
   const dCcy = displayCurrency
   const colCount = isLiquidation ? COL_COUNT_LIQ : compactView ? COL_COUNT_COMPACT : COL_COUNT_FULL
 
-  // Section totals
-  const totalInvestedCHF = sorted.reduce((sum, c) => sum + getInvestedCHF(c), 0)
+  // Section totals — invested uses HISTORICAL rates, value uses LIVE rates
+  const totalInvestedD = sorted.reduce((sum, c) => sum + getInvestedDisplay(c, dCcy), 0)
   const totalValueCHF = sorted.reduce((sum, c) => sum + convertToCHF(c.current_value, c.investment_currency, fxRates), 0)
-  const totalMoic = totalInvestedCHF > 0 ? totalValueCHF / totalInvestedCHF : 0
-  const totalInvestedD = dCcy === 'CHF' ? totalInvestedCHF : totalInvestedCHF / (fxRates[dCcy] || 1)
-  const totalValueD = dCcy === 'CHF' ? totalValueCHF : totalValueCHF / (fxRates[dCcy] || 1)
+  const totalValueD = sorted.reduce((sum, c) => sum + convertToDisplay(c.current_value, c.investment_currency || 'CHF', fxRates, dCcy), 0)
+  const totalMoic = totalInvestedD > 0 ? totalValueD / totalInvestedD : 0
   const totalGainLossD = totalValueD - totalInvestedD
 
   if (companies.length === 0) return null
@@ -213,8 +217,11 @@ export function PortfolioSection({
             const origCcy = company.investment_currency || 'CHF'
             const showShadow = origCcy !== dCcy
 
-            const investedDisplay = convertToDisplay(company.total_invested, origCcy, fxRates, dCcy)
+            // Invested: HISTORICAL rates (pre-computed in DB)
+            const investedDisplay = getInvestedDisplay(company, dCcy)
+            // Value: LIVE rates (mark-to-market)
             const valueDisplay = convertToDisplay(company.current_value, origCcy, fxRates, dCcy)
+            // P&L = Value(live) - Invested(historical), both in display currency
             const gainLossDisplay = valueDisplay - investedDisplay
             const gainLossOrig = company.current_value - company.total_invested
 

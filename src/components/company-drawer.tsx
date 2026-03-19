@@ -193,11 +193,8 @@ export function CompanyDrawer({ companyId, onClose }: CompanyDrawerProps) {
 
 function KpiTiles({ company, fxRates }: { company: NonNullable<ReturnType<typeof useCompanyDetail>['company']>; fxRates: Record<string, number> }) {
   const ccy = company.investment_currency || 'CHF'
-  const investedCHF = ccy === 'CHF'
-    ? company.total_invested
-    : company.original_fx_rate
-      ? company.total_invested * company.original_fx_rate
-      : convertToCHF(company.total_invested, ccy, fxRates)
+  // Use pre-computed historical CHF invested from DB
+  const investedCHF = company.total_invested_chf
   const currentValueCHF = convertToCHF(company.current_value, ccy, fxRates)
   const gainLoss = currentValueCHF - investedCHF
 
