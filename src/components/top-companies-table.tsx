@@ -93,13 +93,13 @@ export function TopCompaniesTable({ companies, fxRates, isLoading, onCompanyClic
                 <TableCell className="hidden sm:table-cell">
                   <Badge variant="secondary">{company.investment_currency}</Badge>
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="text-right font-mono tabular-nums">
                   {formatCurrency(company.total_invested, company.investment_currency || 'CHF')}
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="text-right font-mono tabular-nums">
                   {formatCurrency(company.valueCHF)}
                 </TableCell>
-                <TableCell className={cn('text-right tabular-nums', moicColorClass(company.moic))}>
+                <TableCell className={cn('text-right font-mono tabular-nums', moicColorClass(company.moic))}>
                   {formatMoic(company.moic)}
                 </TableCell>
               </TableRow>

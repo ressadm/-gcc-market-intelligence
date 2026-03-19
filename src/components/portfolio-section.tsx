@@ -281,16 +281,16 @@ export function PortfolioSection({
 
                   {!isLiquidation && (
                     <>
-                      <TableCell className="text-right tabular-nums hidden xl:table-cell">
+                      <TableCell className="text-right font-mono tabular-nums hidden xl:table-cell">
                         {company.total_shares ? company.total_shares.toFixed(2) : '—'}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums hidden xl:table-cell">
+                      <TableCell className="text-right font-mono tabular-nums hidden xl:table-cell">
                         {company.latest_share_price ? formatCurrency(company.latest_share_price, ccy) : '—'}
                       </TableCell>
                     </>
                   )}
 
-                  <TableCell className="text-right tabular-nums">
+                  <TableCell className="text-right font-mono tabular-nums">
                     <div>{formatCurrency(company.total_invested, ccy)}</div>
                     {ccy !== 'CHF' && (
                       <div className="text-[10px] text-muted-foreground">{formatCurrency(investedCHF)}</div>
@@ -299,13 +299,13 @@ export function PortfolioSection({
 
                   {!isLiquidation && (
                     <>
-                      <TableCell className="text-right tabular-nums">
+                      <TableCell className="text-right font-mono tabular-nums">
                         <div>{formatCurrency(valueCHF)}</div>
                         {ccy !== 'CHF' && (
                           <div className="text-[10px] text-muted-foreground">{formatCurrency(company.current_value, ccy)}</div>
                         )}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">
+                      <TableCell className="text-right font-mono tabular-nums">
                         <div className={valueColorClass(gainLossCHF)}>
                           {gainLossCHF >= 0 ? '+' : ''}{formatCurrency(gainLossCHF)}
                         </div>
@@ -315,7 +315,7 @@ export function PortfolioSection({
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">
+                      <TableCell className="text-right font-mono tabular-nums">
                         <div className={cn('font-medium', moicColorClass(chfMoic))}>
                           {formatMoic(chfMoic)}
                         </div>
@@ -350,12 +350,12 @@ export function PortfolioSection({
               <TableCell className="hidden md:table-cell" />
               <TableCell className="hidden xl:table-cell" />
               <TableCell className="hidden xl:table-cell" />
-              <TableCell className="text-right tabular-nums">{formatCurrency(totalInvestedCHF)}</TableCell>
-              <TableCell className="text-right tabular-nums">{formatCurrency(totalValueCHF)}</TableCell>
-              <TableCell className={cn('text-right tabular-nums', valueColorClass(totalGainLossCHF))}>
+              <TableCell className="text-right font-mono tabular-nums">{formatCurrency(totalInvestedCHF)}</TableCell>
+              <TableCell className="text-right font-mono tabular-nums">{formatCurrency(totalValueCHF)}</TableCell>
+              <TableCell className={cn('text-right font-mono tabular-nums', valueColorClass(totalGainLossCHF))}>
                 {totalGainLossCHF >= 0 ? '+' : ''}{formatCurrency(totalGainLossCHF)}
               </TableCell>
-              <TableCell className={cn('text-right tabular-nums', moicColorClass(totalMoic))}>
+              <TableCell className={cn('text-right font-mono tabular-nums', moicColorClass(totalMoic))}>
                 {formatMoic(totalMoic)}
               </TableCell>
             </TableRow>

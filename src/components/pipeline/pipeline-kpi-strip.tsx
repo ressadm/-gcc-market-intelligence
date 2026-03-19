@@ -37,7 +37,7 @@ export function PipelineKpiStrip({ deals, isLoading }: PipelineKpiStripProps) {
         <Card key={card.label}>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">{card.label}</p>
-            <p className={cn('text-2xl font-semibold mt-1 tabular-nums', card.className)}>
+            <p className={cn('text-2xl font-mono font-semibold mt-1 tabular-nums', card.className)}>
               {card.value}
             </p>
             {card.sub && (

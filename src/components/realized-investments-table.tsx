@@ -72,13 +72,13 @@ export function RealizedInvestmentsTable({ transactions, isLoading }: RealizedIn
               <TableCell className="tabular-nums text-sm text-muted-foreground">
                 {formatDate(txn.date)}
               </TableCell>
-              <TableCell className="text-right tabular-nums hidden sm:table-cell">
+              <TableCell className="text-right font-mono tabular-nums hidden sm:table-cell">
                 {txn.shares ? txn.shares.toFixed(2) : '—'}
               </TableCell>
-              <TableCell className="text-right tabular-nums">
+              <TableCell className="text-right font-mono tabular-nums">
                 {formatCurrency(txn.amount_orig, txn.orig_currency)}
               </TableCell>
-              <TableCell className={cn('text-right tabular-nums', valueColorClass(txn.amount_chf))}>
+              <TableCell className={cn('text-right font-mono tabular-nums', valueColorClass(txn.amount_chf))}>
                 {formatCurrency(txn.amount_chf, 'CHF')}
               </TableCell>
               <TableCell className="hidden md:table-cell text-sm text-muted-foreground truncate max-w-[200px]">

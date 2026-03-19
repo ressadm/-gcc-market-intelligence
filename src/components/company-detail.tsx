@@ -73,7 +73,7 @@ export function CompanyDetail({ company, transactions, fxRates }: CompanyDetailP
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Invested</p>
-            <p className="text-xl font-semibold mt-1 tabular-nums">
+            <p className="text-xl font-mono font-semibold mt-1 tabular-nums">
               {formatCurrency(company.total_invested, ccy)}
             </p>
             {ccy !== 'CHF' && (
@@ -84,7 +84,7 @@ export function CompanyDetail({ company, transactions, fxRates }: CompanyDetailP
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Current Value</p>
-            <p className="text-xl font-semibold mt-1 tabular-nums">
+            <p className="text-xl font-mono font-semibold mt-1 tabular-nums">
               {formatCurrency(valueCHF)}
             </p>
             {ccy !== 'CHF' && (
@@ -95,7 +95,7 @@ export function CompanyDetail({ company, transactions, fxRates }: CompanyDetailP
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">MOIC</p>
-            <p className={cn('text-xl font-semibold mt-1 tabular-nums', moicColorClass(company.moic))}>
+            <p className={cn('text-xl font-mono font-semibold mt-1 tabular-nums', moicColorClass(company.moic))}>
               {formatMoic(company.moic)}
             </p>
           </CardContent>
@@ -103,7 +103,7 @@ export function CompanyDetail({ company, transactions, fxRates }: CompanyDetailP
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Gain / Loss</p>
-            <p className={cn('text-xl font-semibold mt-1 tabular-nums', valueColorClass(gainLoss))}>
+            <p className={cn('text-xl font-mono font-semibold mt-1 tabular-nums', valueColorClass(gainLoss))}>
               {gainLoss >= 0 ? '+' : ''}{formatCurrency(gainLoss)}
             </p>
           </CardContent>
@@ -153,25 +153,25 @@ export function CompanyDetail({ company, transactions, fxRates }: CompanyDetailP
                           <span className="ml-1 text-xs text-muted-foreground">(non-cash)</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">
+                      <TableCell className="text-right font-mono tabular-nums">
                         {txn.amount_orig > 0
                           ? formatCurrency(txn.amount_orig, ccy)
                           : '—'}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">
+                      <TableCell className="text-right font-mono tabular-nums">
                         {amountCHF > 0
                           ? formatCurrency(amountCHF)
                           : '—'}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums hidden md:table-cell">
+                      <TableCell className="text-right font-mono tabular-nums hidden md:table-cell">
                         {txn.shares ? new Intl.NumberFormat('en-CH', { maximumFractionDigits: 3 }).format(txn.shares) : '—'}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums hidden md:table-cell">
+                      <TableCell className="text-right font-mono tabular-nums hidden md:table-cell">
                         {txn.price_per_share_orig
                           ? formatCurrencyPrecise(txn.price_per_share_orig, ccy)
                           : '—'}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums hidden lg:table-cell text-muted-foreground">
+                      <TableCell className="text-right font-mono tabular-nums hidden lg:table-cell text-muted-foreground">
                         {txn.fx_rate_orig_to_chf
                           ? txn.fx_rate_orig_to_chf.toFixed(4)
                           : ccy === 'CHF' ? '1.0000' : '—'}

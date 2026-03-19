@@ -110,7 +110,7 @@ export function DealDetail({ deal, activities }: DealDetailProps) {
           <Card key={m.label}>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">{m.label}</p>
-              <p className="text-xl font-semibold mt-1 tabular-nums text-foreground">
+              <p className="text-xl font-mono font-semibold mt-1 tabular-nums text-foreground">
                 {m.value || '—'}
               </p>
             </CardContent>
@@ -200,7 +200,7 @@ export function DealDetail({ deal, activities }: DealDetailProps) {
             <CardContent className="pt-6">
               <h3 className="font-heading text-lg font-semibold mb-4">AI Assessment</h3>
               <div className="flex items-center gap-3">
-                <span className="text-4xl font-bold text-primary tabular-nums">
+                <span className="text-4xl font-mono font-bold text-primary tabular-nums">
                   {deal.agent_score_json.overall_score}/10
                 </span>
               </div>

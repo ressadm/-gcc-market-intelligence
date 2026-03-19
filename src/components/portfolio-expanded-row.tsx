@@ -103,30 +103,30 @@ export function PortfolioExpandedRows({ companyId, colSpan, onViewDetail }: Port
           <TableCell className="hidden md:table-cell" />
 
           {/* Shares (under parent Shares column) */}
-          <TableCell className="text-right tabular-nums text-[12px] hidden xl:table-cell">
+          <TableCell className="text-right font-mono tabular-nums text-[12px] hidden xl:table-cell">
             {txn.shares ? txn.shares.toFixed(2) : '—'}
           </TableCell>
           {/* Price per share (under parent Price column) */}
-          <TableCell className="text-right tabular-nums text-[12px] hidden xl:table-cell">
+          <TableCell className="text-right font-mono tabular-nums text-[12px] hidden xl:table-cell">
             {txn.price_per_share_orig
               ? formatCurrencyPrecise(txn.price_per_share_orig, ccy)
               : '—'}
           </TableCell>
 
           {/* Amount orig (under parent Invested column) */}
-          <TableCell className="text-right tabular-nums text-[12px]">
+          <TableCell className="text-right font-mono tabular-nums text-[12px]">
             {formatCurrency(txn.amount_orig, ccy)}
           </TableCell>
 
           {/* Amount CHF (under parent Value column) */}
-          <TableCell className="text-right tabular-nums text-[12px]">
+          <TableCell className="text-right font-mono tabular-nums text-[12px]">
             {txn.fx_rate_orig_to_chf
               ? formatCurrency(txn.amount_orig * txn.fx_rate_orig_to_chf, 'CHF')
               : '—'}
           </TableCell>
 
           {/* FX rate (under parent G/L column) */}
-          <TableCell className="text-right tabular-nums text-[11px] text-muted-foreground">
+          <TableCell className="text-right font-mono tabular-nums text-[11px] text-muted-foreground">
             {txn.fx_rate_orig_to_chf && ccy !== 'CHF'
               ? `FX ${txn.fx_rate_orig_to_chf.toFixed(4)}`
               : ''}

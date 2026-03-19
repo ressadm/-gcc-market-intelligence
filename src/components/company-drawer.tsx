@@ -146,10 +146,10 @@ export function CompanyDrawer({ companyId, onClose }: CompanyDrawerProps) {
                               </Badge>
                             </TableCell>
                             <TableCell className="tabular-nums">{formatDate(txn.date)}</TableCell>
-                            <TableCell className="text-right tabular-nums">
+                            <TableCell className="text-right font-mono tabular-nums">
                               {formatCurrencyPrecise(txn.amount_orig, txn.orig_currency)}
                             </TableCell>
-                            <TableCell className="text-right tabular-nums">
+                            <TableCell className="text-right font-mono tabular-nums">
                               {txn.fx_rate_orig_to_chf
                                 ? formatCurrencyPrecise(txn.amount_orig * txn.fx_rate_orig_to_chf, 'CHF')
                                 : '—'}
