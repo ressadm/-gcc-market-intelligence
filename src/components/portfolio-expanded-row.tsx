@@ -129,8 +129,6 @@ export function PortfolioExpandedRows({
   const sumGainLossDisplay = sumValueDisplay - sumDisplayCash
   const sumMoic = sumOrigCash > 0 ? sumValueOrig / sumOrigCash : null
 
-  const leftColSpan = compactView ? 1 : 3
-
   return (
     <>
       {transactions.map((txn) => {
@@ -245,10 +243,9 @@ export function PortfolioExpandedRows({
       {/* Summary row */}
       <TableRow className="bg-muted/15 border-border/20">
         <TableCell className="w-8" />
-        <TableCell colSpan={leftColSpan} className="pl-6">
+        <TableCell className="pl-6">
           <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
             <span className="font-medium">Total (cash only)</span>
-            <span className="tabular-nums">{formatCurrency(sumDisplayCash, dCcy)}</span>
             {showShadow && (
               <span className="tabular-nums">{formatCurrency(sumOrigCash, origCcy)}</span>
             )}
@@ -258,6 +255,13 @@ export function PortfolioExpandedRows({
             <span>{roundCount} round{roundCount !== 1 ? 's' : ''}</span>
           </div>
         </TableCell>
+        {/* Shares + Price placeholders — match transaction row visibility */}
+        {!compactView && (
+          <>
+            <TableCell className="hidden xl:table-cell" />
+            <TableCell className="hidden xl:table-cell" />
+          </>
+        )}
         {/* Invested total */}
         <TableCell className="text-right font-mono tabular-nums text-[11px] text-muted-foreground">
           {formatCurrency(sumDisplayCash, dCcy)}
