@@ -10,7 +10,7 @@ import { CompanyDrawer } from '@/components/company-drawer'
 import { RealizedInvestmentsTable } from '@/components/realized-investments-table'
 import { useRealizedTransactions } from '@/hooks/use-realized-transactions'
 import { exportToCSV } from '@/lib/export'
-import { convertToDisplay } from '@/lib/fx'
+import { convertToDisplay, getInvestedInDisplayCurrency } from '@/lib/fx'
 import type { DisplayCurrency } from '@/lib/types'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
@@ -46,7 +46,7 @@ export default function PortfolioPage() {
     const headers = ['Company', 'Status', 'Vehicle', 'Currency', `Invested (${dCcy})`, `Value (${dCcy})`, `Gain/Loss (${dCcy})`, 'MOIC']
     const rows = companies.map(c => {
       const origCcy = c.investment_currency || 'CHF'
-      const investedD = convertToDisplay(c.total_invested, origCcy, fxRates, dCcy)
+      const investedD = getInvestedInDisplayCurrency(c, dCcy)
       const valueD = convertToDisplay(c.current_value, origCcy, fxRates, dCcy)
       const gainLossD = valueD - investedD
       return [
@@ -88,7 +88,7 @@ export default function PortfolioPage() {
       <h1 className="font-heading text-2xl font-bold print:text-xl">Portfolio</h1>
 
       {/* Fix 5: KPI strip responds to currency toggle */}
-      <KpiStrip stats={stats} isLoading={isLoading} displayCurrency={displayCurrency} fxRates={fxRates} />
+      <KpiStrip stats={stats} isLoading={isLoading} displayCurrency={displayCurrency} />
 
       <PortfolioFilters
         search={search}
@@ -117,7 +117,7 @@ export default function PortfolioPage() {
         displayCurrency={displayCurrency}
       />
 
-      <RealizedInvestmentsTable transactions={realizedTxns} isLoading={realizedLoading} />
+      <RealizedInvestmentsTable transactions={realizedTxns} isLoading={realizedLoading} vehicleFilter={vehicleFilter} />
 
       {drawerCompanyId && (
         <CompanyDrawer

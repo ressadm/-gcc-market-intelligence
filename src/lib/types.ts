@@ -5,7 +5,9 @@ export interface PortfolioCompany {
   sector: string | null
   vehicle: string | null
   investment_currency: string | null
-  total_invested: number
+  total_invested: number          // in original currency
+  total_invested_chf: number      // SUM(txn × historical orig→CHF rate)
+  total_invested_usd: number      // SUM(txn × historical orig→USD rate)
   total_distributions: number
   latest_valuation: number | null
   latest_valuation_date: string | null
@@ -16,7 +18,7 @@ export interface PortfolioCompany {
   days_since_valuation: number | null
   is_stale: boolean
   moic: number | null
-  current_value: number
+  current_value: number           // in original currency
   total_value: number
 }
 
@@ -33,11 +35,17 @@ export interface FxRate {
 export interface PortfolioStats {
   companyCount: number
   totalInvestedCHF: number
+  totalInvestedUSD: number
   totalCurrentValueCHF: number
+  totalCurrentValueUSD: number
   totalDistributionsCHF: number
   totalValueCHF: number
-  portfolioMoic: number
+  totalValueUSD: number
+  portfolioMoicCHF: number        // MOIC in CHF terms (historical CHF invested vs CHF value)
+  portfolioMoicUSD: number        // MOIC in USD terms (historical USD invested vs USD value)
+  portfolioMoic: number           // backward compat alias (= portfolioMoicCHF)
   unrealizedPnlCHF: number
+  unrealizedPnlUSD: number
   fxImpactPct: number
   staleCount: number
   currencyBreakdown: CurrencyBreakdown[]
@@ -53,6 +61,7 @@ export interface Transaction {
   amount_orig: number
   orig_currency: string
   fx_rate_orig_to_chf: number | null
+  fx_rate_orig_to_usd: number | null
   price_per_share_orig: number | null
   shares: number | null
   date: string

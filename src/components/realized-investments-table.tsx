@@ -13,13 +13,15 @@ import {
 import { formatCurrency, formatDate, valueColorClass } from '@/lib/format'
 import type { RealizedTransaction } from '@/hooks/use-realized-transactions'
 import { cn } from '@/lib/utils'
+import { matchesVehicleFilter } from './portfolio-filters'
 
 interface RealizedInvestmentsTableProps {
   transactions: RealizedTransaction[]
   isLoading: boolean
+  vehicleFilter?: string
 }
 
-export function RealizedInvestmentsTable({ transactions, isLoading }: RealizedInvestmentsTableProps) {
+export function RealizedInvestmentsTable({ transactions, isLoading, vehicleFilter = 'All' }: RealizedInvestmentsTableProps) {
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -30,7 +32,11 @@ export function RealizedInvestmentsTable({ transactions, isLoading }: RealizedIn
     )
   }
 
-  if (transactions.length === 0) return null
+  const filtered = vehicleFilter === 'All'
+    ? transactions
+    : transactions.filter(t => matchesVehicleFilter(t.vehicle, vehicleFilter))
+
+  if (filtered.length === 0) return null
 
   return (
     <div className="overflow-x-auto">
@@ -51,12 +57,12 @@ export function RealizedInvestmentsTable({ transactions, isLoading }: RealizedIn
           <TableRow className="bg-secondary/50 hover:bg-secondary/50">
             <TableCell colSpan={7} className="py-2">
               <span className="font-heading font-semibold text-sm tracking-wide uppercase">
-                Realized ({transactions.length})
+                Realized ({filtered.length})
               </span>
             </TableCell>
           </TableRow>
 
-          {transactions.map((txn) => (
+          {filtered.map((txn) => (
             <TableRow key={txn.id}>
               <TableCell className="font-medium">{txn.company_name}</TableCell>
               <TableCell>

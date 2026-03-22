@@ -34,8 +34,14 @@ export function convertFromCHF(
 }
 
 /**
- * Convert an amount from any currency to the display currency.
- * fxRates maps currency → CHF rate. To convert to USD, we go: orig → CHF → USD.
+ * Convert an amount from any currency to the display currency using LIVE FX rates.
+ *
+ * IMPORTANT: This function uses TODAY's FX rates. It is CORRECT for:
+ *   - Current value (mark-to-market uses live rates)
+ *   - Distributions
+ * It is WRONG for:
+ *   - Invested amounts (must use historical rates at investment date)
+ *   For invested amounts, use getInvestedInDisplayCurrency() instead.
  */
 export function convertToDisplay(
   amount: number,
@@ -55,7 +61,38 @@ export function convertToDisplay(
 }
 
 /**
- * Aggregate portfolio data into CHF-normalized stats.
+ * Get the invested amount for a company in the requested display currency,
+ * using HISTORICAL FX rates (pre-computed and stored in the DB).
+ *
+ * This is the correct function for invested amounts — it uses per-transaction
+ * historical rates summed in the portfolio_summary view.
+ */
+export function getInvestedInDisplayCurrency(
+  company: PortfolioCompany,
+  displayCurrency: string
+): number {
+  switch (displayCurrency) {
+    case 'CHF':
+      return company.total_invested_chf
+    case 'USD':
+      return company.total_invested_usd
+    default:
+      // Fallback for unsupported currencies — use CHF
+      return company.total_invested_chf
+  }
+}
+
+/**
+ * Aggregate portfolio data into dual-currency stats (CHF + USD).
+ *
+ * KEY FX RULES:
+ *   Invested = HISTORICAL FX rates (locked at transaction date)
+ *     → Uses pre-computed total_invested_chf / total_invested_usd from DB
+ *   Current Value = LIVE FX rates (mark-to-market, recomputed daily)
+ *     → Uses convertToCHF/convertFromCHF with today's fxRates
+ *   P&L = Value(live) - Invested(historical), both in same currency
+ *   MOIC = (Value + Distributions) / Invested, per currency
+ *
  * All financial math is deterministic — pure arithmetic, no LLM.
  */
 export function aggregatePortfolioCHF(
@@ -63,7 +100,9 @@ export function aggregatePortfolioCHF(
   fxRates: Record<string, number>
 ): PortfolioStats {
   let totalInvestedCHF = 0
+  let totalInvestedUSD = 0
   let totalCurrentValueCHF = 0
+  let totalCurrentValueUSD = 0
   let totalDistributionsCHF = 0
   let staleCount = 0
 
@@ -78,16 +117,20 @@ export function aggregatePortfolioCHF(
 
   for (const c of companies) {
     const currency = c.investment_currency || 'CHF'
-    // Invested: historical FX rate (locked at investment date)
-    const investedCHF = currency === 'CHF'
-      ? c.total_invested
-      : c.total_invested * (c.original_fx_rate || 1)
-    // Current value + distributions: live FX rate (recomputed daily)
+
+    // Invested: HISTORICAL rates (pre-computed in DB view)
+    const investedCHF = c.total_invested_chf
+    const investedUSD = c.total_invested_usd
+
+    // Current value + distributions: LIVE FX rates (mark-to-market)
     const currentCHF = convertToCHF(c.current_value, currency, fxRates)
+    const currentUSD = convertFromCHF(currentCHF, 'USD', fxRates)
     const distCHF = convertToCHF(c.total_distributions, currency, fxRates)
 
     totalInvestedCHF += investedCHF
+    totalInvestedUSD += investedUSD
     totalCurrentValueCHF += currentCHF
+    totalCurrentValueUSD += currentUSD
     totalDistributionsCHF += distCHF
 
     if (c.is_stale) staleCount++
@@ -143,28 +186,41 @@ export function aggregatePortfolioCHF(
   }
 
   const totalValueCHF = totalCurrentValueCHF + totalDistributionsCHF
-  const portfolioMoic = totalInvestedCHF > 0
+  const totalDistUSD = convertFromCHF(totalDistributionsCHF, 'USD', fxRates)
+  const totalValueUSD = totalCurrentValueUSD + totalDistUSD
+
+  const portfolioMoicCHF = totalInvestedCHF > 0
     ? totalValueCHF / totalInvestedCHF
+    : 0
+  const portfolioMoicUSD = totalInvestedUSD > 0
+    ? totalValueUSD / totalInvestedUSD
     : 0
 
   const unrealizedPnlCHF = totalCurrentValueCHF - totalInvestedCHF
+  const unrealizedPnlUSD = totalCurrentValueUSD - totalInvestedUSD
 
   // Weighted average MOIC in original currencies, then compare to CHF MOIC
   const weightedMoicOrig = weightedMoicOrigDenom > 0
     ? weightedMoicOrigSum / weightedMoicOrigDenom
     : 0
   const fxImpactPct = weightedMoicOrig > 0
-    ? (portfolioMoic / weightedMoicOrig) - 1
+    ? (portfolioMoicCHF / weightedMoicOrig) - 1
     : 0
 
   return {
     companyCount: companies.length,
     totalInvestedCHF,
+    totalInvestedUSD,
     totalCurrentValueCHF,
+    totalCurrentValueUSD,
     totalDistributionsCHF,
     totalValueCHF,
-    portfolioMoic,
+    totalValueUSD,
+    portfolioMoicCHF,
+    portfolioMoicUSD,
+    portfolioMoic: portfolioMoicCHF, // backward compat
     unrealizedPnlCHF,
+    unrealizedPnlUSD,
     fxImpactPct,
     staleCount,
     currencyBreakdown: Array.from(currencyMap.values())
