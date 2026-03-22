@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { DisplayCurrency, PortfolioCompany } from '@/lib/types'
 import { PortfolioSection } from './portfolio-section'
+import { matchesVehicleFilter } from './portfolio-filters'
 
 interface PortfolioTableProps {
   companies: PortfolioCompany[]
@@ -35,7 +36,7 @@ export function PortfolioTable({
       result = result.filter(c => c.name.toLowerCase().includes(q))
     }
     if (vehicleFilter !== 'All') {
-      result = result.filter(c => c.vehicle === vehicleFilter)
+      result = result.filter(c => matchesVehicleFilter(c.vehicle, vehicleFilter))
     }
     if (statusFilter !== 'All') {
       result = result.filter(c => c.status === statusFilter)

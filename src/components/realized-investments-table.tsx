@@ -13,6 +13,7 @@ import {
 import { formatCurrency, formatDate, valueColorClass } from '@/lib/format'
 import type { RealizedTransaction } from '@/hooks/use-realized-transactions'
 import { cn } from '@/lib/utils'
+import { matchesVehicleFilter } from './portfolio-filters'
 
 interface RealizedInvestmentsTableProps {
   transactions: RealizedTransaction[]
@@ -33,7 +34,7 @@ export function RealizedInvestmentsTable({ transactions, isLoading, vehicleFilte
 
   const filtered = vehicleFilter === 'All'
     ? transactions
-    : transactions.filter(t => t.vehicle === vehicleFilter)
+    : transactions.filter(t => matchesVehicleFilter(t.vehicle, vehicleFilter))
 
   if (filtered.length === 0) return null
 

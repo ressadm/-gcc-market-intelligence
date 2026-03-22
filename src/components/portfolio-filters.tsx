@@ -30,6 +30,21 @@ const vehicleLabels: Record<string, string> = {
   fund: 'LP Fund',
 }
 
+// Map filter tab values to the DB vehicle values they include
+const vehicleGroups: Record<string, string[]> = {
+  fiduciary: ['fiduciary'],
+  direct: ['spv', 'safe', 'direct'],
+  fund: ['fund_lp', 'fund_etf'],
+}
+
+/** Check if a DB vehicle value matches a filter tab value */
+export function matchesVehicleFilter(vehicle: string | null | undefined, filter: string): boolean {
+  if (filter === 'All') return true
+  const group = vehicleGroups[filter]
+  if (!group) return vehicle === filter
+  return vehicle != null && group.includes(vehicle)
+}
+
 const statusOptions = ['All', 'Active', 'In Liquidation', 'Written Off']
 
 export function PortfolioFilters({
