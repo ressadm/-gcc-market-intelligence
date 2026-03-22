@@ -48,9 +48,9 @@ export default function DashboardPage() {
   // Source counts
   const sourceCounts = useMemo(() => ({
     all: companies.length,
-    verve: companies.filter(c => c.vehicle === 'fiduciary').length,
-    direct: companies.filter(c => c.vehicle === 'direct').length,
-    funds: companies.filter(c => c.vehicle === 'fund').length,
+    verve: companies.filter(c => SOURCE_VEHICLE_MAP.verve.includes(c.vehicle || '')).length,
+    direct: companies.filter(c => SOURCE_VEHICLE_MAP.direct.includes(c.vehicle || '')).length,
+    funds: companies.filter(c => SOURCE_VEHICLE_MAP.funds.includes(c.vehicle || '')).length,
   }), [companies])
 
   if (error) {

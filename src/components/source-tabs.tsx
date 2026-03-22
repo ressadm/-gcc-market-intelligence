@@ -19,8 +19,8 @@ const tabs = [
 export const SOURCE_VEHICLE_MAP: Record<string, string[]> = {
   all: [],
   verve: ['fiduciary'],
-  direct: ['direct'],
-  funds: ['fund'],
+  direct: ['direct', 'spv', 'safe'],
+  funds: ['fund', 'fund_lp', 'fund_etf'],
 }
 
 export function SourceTabs({ value, onChange, counts, className }: SourceTabsProps) {

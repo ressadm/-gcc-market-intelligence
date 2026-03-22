@@ -42,10 +42,8 @@ export function CompanyDetail({ company, transactions, fxRates, onRefresh }: Com
   const [showAddTxn, setShowAddTxn] = useState(false)
   const [showUpdateVal, setShowUpdateVal] = useState(false)
   const ccy = company.investment_currency || 'CHF'
-  // Invested: historical FX (locked at investment date)
-  const investedCHF = ccy === 'CHF'
-    ? company.total_invested
-    : company.total_invested * (company.original_fx_rate || 1)
+  // Invested: pre-computed from per-transaction historical FX rates
+  const investedCHF = company.total_invested_chf
   // Current value: live FX (recomputed daily)
   const valueCHF = convertToCHF(company.current_value, ccy, fxRates)
   const gainLoss = valueCHF - investedCHF
