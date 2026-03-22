@@ -117,7 +117,7 @@ export default function PortfolioPage() {
         displayCurrency={displayCurrency}
       />
 
-      <RealizedInvestmentsTable transactions={realizedTxns} isLoading={realizedLoading} />
+      <RealizedInvestmentsTable transactions={realizedTxns} isLoading={realizedLoading} vehicleFilter={vehicleFilter} />
 
       {drawerCompanyId && (
         <CompanyDrawer

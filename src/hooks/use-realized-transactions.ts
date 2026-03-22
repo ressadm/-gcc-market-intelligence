@@ -7,6 +7,7 @@ export interface RealizedTransaction {
   id: string
   company_id: string
   company_name: string
+  vehicle: string | null
   type: string
   date: string
   amount_orig: number
@@ -37,7 +38,7 @@ export function useRealizedTransactions(): UseRealizedTransactionsReturn {
       try {
         const { data, error: queryError } = await supabase
           .from('transactions')
-          .select('id, company_id, type, date, amount_orig, orig_currency, fx_rate_orig_to_chf, shares, notes, companies!inner(name)')
+          .select('id, company_id, type, date, amount_orig, orig_currency, fx_rate_orig_to_chf, shares, notes, companies!inner(name, vehicle)')
           .in('type', ['EXIT', 'DIST'])
           .order('date', { ascending: false })
 
@@ -47,7 +48,8 @@ export function useRealizedTransactions(): UseRealizedTransactionsReturn {
         const mapped = (data || []).map((t: Record<string, unknown>) => ({
           id: t.id as string,
           company_id: t.company_id as string,
-          company_name: (t.companies as { name: string })?.name || 'Unknown',
+          company_name: (t.companies as { name: string; vehicle?: string })?.name || 'Unknown',
+          vehicle: (t.companies as { name: string; vehicle?: string })?.vehicle || null,
           type: t.type as string,
           date: t.date as string,
           amount_orig: t.amount_orig as number,
