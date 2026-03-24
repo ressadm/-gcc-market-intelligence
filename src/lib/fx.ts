@@ -168,7 +168,15 @@ export function aggregatePortfolioCHF(
     sectorMap.set(sector, existingSector)
 
     // Source breakdown (vehicle)
-    const vehicleLabels: Record<string, string> = { fiduciary: 'Verve', direct: 'Direct', fund: 'LP Fund' }
+    const vehicleLabels: Record<string, string> = {
+      fiduciary: 'Verve',
+      direct: 'Direct',
+      spv: 'Direct',
+      safe: 'Direct',
+      fund: 'LP Fund',
+      fund_lp: 'LP Fund',
+      fund_etf: 'LP Fund',
+    }
     const source = vehicleLabels[c.vehicle || ''] || c.vehicle || 'Unknown'
     const existingSource = sourceMap.get(source) || { source, count: 0, investedCHF: 0, currentValueCHF: 0 }
     existingSource.count++

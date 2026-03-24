@@ -44,7 +44,7 @@ export function StageChart({ data, isLoading }: StageChartProps) {
   }
 
   const chartData = data.map(d => ({
-    name: d.stage.length > 12 ? d.stage.slice(0, 12) + '…' : d.stage,
+    name: d.stage.length > 16 ? d.stage.slice(0, 16) + '…' : d.stage,
     fullName: d.stage,
     count: d.count,
   }))
@@ -59,7 +59,7 @@ export function StageChart({ data, isLoading }: StageChartProps) {
             <YAxis
               type="category"
               dataKey="name"
-              width={100}
+              width={120}
               tick={{ fill: '#94A3B8', fontSize: 12 }}
             />
             <Tooltip
