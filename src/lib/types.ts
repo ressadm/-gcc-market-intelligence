@@ -165,6 +165,11 @@ export interface Deal {
     overall_score?: number
     recommendation?: string
   } | null
+  company_description: string | null
+  company_website: string | null
+  company_linkedin: string | null
+  company_location: string | null
+  company_founded: string | null
   created_at: string
   updated_at: string
 }

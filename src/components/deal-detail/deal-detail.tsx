@@ -8,7 +8,7 @@ import { formatCurrency, formatDate } from '@/lib/format'
 import { STAGE_LABELS, STAGE_COLORS, SOURCE_LABELS } from '@/lib/pipeline-constants'
 import type { Deal, DealActivity } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { DealActivityTimeline } from './deal-activity-timeline'
 import {
   BarChart,
@@ -103,6 +103,32 @@ export function DealDetail({ deal, activities }: DealDetailProps) {
           </div>
         )}
       </div>
+
+      {/* Company Profile */}
+      {(deal.company_description || deal.company_website || deal.company_linkedin || deal.company_location || deal.company_founded) && (
+        <Card>
+          <CardContent className="pt-6 space-y-3">
+            <h3 className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Company Profile</h3>
+            {deal.company_description && (
+              <p className="text-sm text-muted-foreground leading-relaxed">{deal.company_description}</p>
+            )}
+            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+              {deal.company_location && <span>📍 {deal.company_location}</span>}
+              {deal.company_founded && <span>🗓 Founded {deal.company_founded}</span>}
+              {deal.company_website && (
+                <a href={deal.company_website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+                  Website <ExternalLink size={12} />
+                </a>
+              )}
+              {deal.company_linkedin && (
+                <a href={deal.company_linkedin} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+                  LinkedIn <ExternalLink size={12} />
+                </a>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
