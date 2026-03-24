@@ -12,10 +12,11 @@ import { formatCurrency } from '@/lib/format'
 import { STAGE_LABELS, STAGE_COLORS, SOURCE_LABELS, PIPELINE_STAGES } from '@/lib/pipeline-constants'
 import type { DealStage } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { X, ArrowRight, ThumbsUp, Minus, ThumbsDown, Loader2 } from 'lucide-react'
+import { X, ArrowRight, ThumbsUp, Minus, ThumbsDown, Loader2, Pencil, ExternalLink } from 'lucide-react'
 import { DealActivityTimeline } from '@/components/deal-detail/deal-activity-timeline'
 import { CloseDealDialog } from '@/components/pipeline/close-deal-dialog'
 import { PassDealDialog } from '@/components/pipeline/pass-deal-dialog'
+import { EditDealDialog } from '@/components/pipeline/edit-deal-dialog'
 
 interface DealDrawerProps {
   dealId: string
@@ -40,6 +41,7 @@ export function DealDrawer({ dealId, onClose, onUpdate }: DealDrawerProps) {
   const [advancing, setAdvancing] = useState(false)
   const [showPassDialog, setShowPassDialog] = useState(false)
   const [showCloseDialog, setShowCloseDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
 
   const handleClose = useCallback(() => {
     if (prefersReducedMotion) { onClose(); return }
@@ -122,13 +124,41 @@ export function DealDrawer({ dealId, onClose, onUpdate }: DealDrawerProps) {
               {deal.one_liner && (
                 <p className="text-sm text-muted-foreground mt-2">{deal.one_liner}</p>
               )}
+              {(deal.company_description || deal.company_website || deal.company_linkedin || deal.company_location || deal.company_founded) && (
+                <div className="mt-3 space-y-1.5">
+                  {deal.company_description && (
+                    <p className="text-xs text-muted-foreground/80 leading-relaxed">{deal.company_description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+                    {deal.company_location && <span>📍 {deal.company_location}</span>}
+                    {deal.company_founded && <span>🗓 Founded {deal.company_founded}</span>}
+                    {deal.company_website && (
+                      <a href={deal.company_website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-0.5">
+                        Website <ExternalLink size={10} />
+                      </a>
+                    )}
+                    {deal.company_linkedin && (
+                      <a href={deal.company_linkedin} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-0.5">
+                        LinkedIn <ExternalLink size={10} />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <span className="text-muted-foreground">Deal not found</span>
           )}
-          <button onClick={handleClose} className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded">
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-1">
+            {deal && (
+              <button onClick={() => setShowEditDialog(true)} className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded" aria-label="Edit deal">
+                <Pencil size={16} />
+              </button>
+            )}
+            <button onClick={handleClose} className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded">
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Body */}
@@ -270,6 +300,15 @@ export function DealDrawer({ dealId, onClose, onUpdate }: DealDrawerProps) {
 
       {deal && (
         <>
+          <EditDealDialog
+            deal={deal}
+            open={showEditDialog}
+            onOpenChange={setShowEditDialog}
+            onSuccess={() => {
+              onUpdate?.()
+              onClose()
+            }}
+          />
           <CloseDealDialog
             deal={deal}
             open={showCloseDialog}

@@ -31,6 +31,7 @@ interface CompanyDetailProps {
 
 const typeBadgeColors: Record<string, string> = {
   EQT: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  Fund: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
   CVL: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
   SAFE: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
   ADJ: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
@@ -38,14 +39,17 @@ const typeBadgeColors: Record<string, string> = {
   RECAP: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
 }
 
+function getTxnTypeLabel(txnType: string, vehicle: string | null | undefined): string {
+  if ((vehicle === 'fund_lp' || vehicle === 'fund_etf') && txnType === 'EQT') return 'Fund'
+  return txnType
+}
+
 export function CompanyDetail({ company, transactions, fxRates, onRefresh }: CompanyDetailProps) {
   const [showAddTxn, setShowAddTxn] = useState(false)
   const [showUpdateVal, setShowUpdateVal] = useState(false)
   const ccy = company.investment_currency || 'CHF'
-  // Invested: historical FX (locked at investment date)
-  const investedCHF = ccy === 'CHF'
-    ? company.total_invested
-    : company.total_invested * (company.original_fx_rate || 1)
+  // Invested: pre-computed from per-transaction historical FX rates
+  const investedCHF = company.total_invested_chf
   // Current value: live FX (recomputed daily)
   const valueCHF = convertToCHF(company.current_value, ccy, fxRates)
   const gainLoss = valueCHF - investedCHF
@@ -173,9 +177,9 @@ export function CompanyDetail({ company, transactions, fxRates, onRefresh }: Com
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className={cn('text-xs', typeBadgeColors[txn.type] || '')}
+                          className={cn('text-xs', typeBadgeColors[getTxnTypeLabel(txn.type, company.vehicle)] || '')}
                         >
-                          {txn.type}
+                          {getTxnTypeLabel(txn.type, company.vehicle)}
                         </Badge>
                         {!isCash && (
                           <span className="ml-1 text-xs text-muted-foreground">(non-cash)</span>

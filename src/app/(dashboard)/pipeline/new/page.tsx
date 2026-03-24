@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { STAGE_LABELS, STAGE_COLORS, SOURCE_LABELS, PIPELINE_STAGES } from '@/lib/pipeline-constants'
@@ -34,6 +35,11 @@ export default function NewDealPage() {
     source_channel: '',
     company_sector: '',
     one_liner: '',
+    company_description: '',
+    company_website: '',
+    company_linkedin: '',
+    company_location: '',
+    company_founded: '',
     round_type: '',
     round_size_usd: '',
     valuation_pre_usd: '',
@@ -63,6 +69,11 @@ export default function NewDealPage() {
     if (form.source_channel) payload.source_channel = form.source_channel
     if (form.company_sector) payload.company_sector = form.company_sector.trim()
     if (form.one_liner) payload.one_liner = form.one_liner.trim()
+    if (form.company_description) payload.company_description = form.company_description.trim()
+    if (form.company_website) payload.company_website = form.company_website.trim()
+    if (form.company_linkedin) payload.company_linkedin = form.company_linkedin.trim()
+    if (form.company_location) payload.company_location = form.company_location.trim()
+    if (form.company_founded) payload.company_founded = form.company_founded.trim()
     if (form.round_type) payload.round_type = form.round_type
     if (form.round_size_usd) payload.round_size_usd = Number(form.round_size_usd)
     if (form.valuation_pre_usd) payload.valuation_pre_usd = Number(form.valuation_pre_usd)
@@ -177,6 +188,61 @@ export default function NewDealPage() {
                     {SOURCE_LABELS[s]}
                   </Button>
                 ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Company Profile */}
+        <Card>
+          <CardContent className="pt-6 space-y-4">
+            <h3 className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider">Company Profile</h3>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Description</label>
+              <Textarea
+                value={form.company_description}
+                onChange={(e) => update('company_description', e.target.value)}
+                placeholder="What does the company do?"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Website</label>
+                <Input
+                  value={form.company_website}
+                  onChange={(e) => update('company_website', e.target.value)}
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">LinkedIn</label>
+                <Input
+                  value={form.company_linkedin}
+                  onChange={(e) => update('company_linkedin', e.target.value)}
+                  placeholder="https://linkedin.com/company/..."
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">HQ Location</label>
+                <Input
+                  value={form.company_location}
+                  onChange={(e) => update('company_location', e.target.value)}
+                  placeholder="e.g. Zurich, Switzerland"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Founded</label>
+                <Input
+                  value={form.company_founded}
+                  onChange={(e) => update('company_founded', e.target.value)}
+                  placeholder="e.g. 2021"
+                />
               </div>
             </div>
           </CardContent>

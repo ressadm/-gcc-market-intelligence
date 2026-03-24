@@ -39,11 +39,17 @@ interface PortfolioExpandedRowProps {
 
 const typeBadgeColors: Record<string, string> = {
   EQT: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  Fund: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
   CVL: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
   SAFE: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
   ADJ: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
   DIST: 'bg-green-500/20 text-green-400 border-green-500/30',
   RECAP: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+}
+
+function getTxnTypeLabel(txnType: string, vehicle: string | null | undefined): string {
+  if ((vehicle === 'fund_lp' || vehicle === 'fund_etf') && txnType === 'EQT') return 'Fund'
+  return txnType
 }
 
 // Transaction types that have a computable tranche value (shares × price)
@@ -120,10 +126,12 @@ export function PortfolioExpandedRows({
   const sumDisplayCash = cashTxns.reduce((s, t) => s + getTxnAmountInDisplayCurrency(t, dCcy), 0)
 
   // Summary value: use LIVE rates (mark-to-market)
-  const sumValueOrig = cashTxns.reduce((s, t) => {
-    const v = getTranchValueOrig(t)
-    return v !== null ? s + v : s
-  }, 0)
+  const trancheValues = cashTxns.map(t => getTranchValueOrig(t))
+  const allNull = trancheValues.every(v => v === null)
+  // If no tranche has a computable value (fund/direct without shares), use company.current_value
+  const sumValueOrig = allNull
+    ? (company.current_value ?? sumOrigCash)
+    : trancheValues.reduce((s: number, v) => v !== null ? s + v : s, 0)
   const sumValueDisplay = convertToDisplay(sumValueOrig, origCcy, fxRates, dCcy)
   // P&L = Value(live) - Invested(historical)
   const sumGainLossDisplay = sumValueDisplay - sumDisplayCash
@@ -135,18 +143,24 @@ export function PortfolioExpandedRows({
         // Invested: HISTORICAL rate per transaction
         const txnAmountDisplay = getTxnAmountInDisplayCurrency(txn, dCcy)
         const tranchValueOrig = getTranchValueOrig(txn)
-        const hasValue = tranchValueOrig !== null
+        // Fund/direct fallback: single cash txn without shares → use company.current_value
+        const effectiveValueOrig = tranchValueOrig ?? (
+          !txn.shares && !latestPrice && cashTxns.length === 1 && EQUITY_TYPES.has(txn.type)
+            ? (company.current_value ?? txn.amount_orig)
+            : null
+        )
+        const hasValue = effectiveValueOrig !== null
         // Value: LIVE rate (mark-to-market)
-        const tranchValueDisplay = hasValue ? convertToDisplay(tranchValueOrig, origCcy, fxRates, dCcy) : null
+        const tranchValueDisplay = hasValue ? convertToDisplay(effectiveValueOrig, origCcy, fxRates, dCcy) : null
 
         // G/L: Value(live) - Invested(historical), both in display currency
         const canShowGL = hasValue && EQUITY_TYPES.has(txn.type)
         const glDisplay = canShowGL ? tranchValueDisplay! - txnAmountDisplay : null
-        const glOrig = canShowGL ? tranchValueOrig! - txn.amount_orig : null
+        const glOrig = canShowGL ? effectiveValueOrig! - txn.amount_orig : null
 
         // MOIC: value / invested
         const canShowMoic = canShowGL && txn.amount_orig > 0
-        const txnMoic = canShowMoic ? tranchValueOrig! / txn.amount_orig : null
+        const txnMoic = canShowMoic ? effectiveValueOrig! / txn.amount_orig : null
 
         return (
           <TableRow
@@ -162,8 +176,8 @@ export function PortfolioExpandedRows({
             {/* Company column: type badge + date + notes */}
             <TableCell className="pl-6 text-[12px]">
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className={cn('text-[9px] px-1 py-0 shrink-0', typeBadgeColors[txn.type] || '')}>
-                  {txn.type}
+                <Badge variant="outline" className={cn('text-[9px] px-1 py-0 shrink-0', typeBadgeColors[getTxnTypeLabel(txn.type, company.vehicle)] || '')}>
+                  {getTxnTypeLabel(txn.type, company.vehicle)}
                 </Badge>
                 <span className="text-muted-foreground tabular-nums">{formatDate(txn.date)}</span>
                 {txn.notes && (
@@ -200,7 +214,7 @@ export function PortfolioExpandedRows({
                 <>
                   <div>{formatCurrency(tranchValueDisplay!, dCcy)}</div>
                   {showShadow && (
-                    <div className="text-[10px] text-muted-foreground">{formatCurrency(tranchValueOrig!, origCcy)}</div>
+                    <div className="text-[10px] text-muted-foreground">{formatCurrency(effectiveValueOrig!, origCcy)}</div>
                   )}
                 </>
               ) : (
