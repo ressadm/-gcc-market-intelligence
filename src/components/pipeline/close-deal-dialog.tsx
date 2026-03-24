@@ -65,7 +65,7 @@ export function CloseDealDialog({ deal, open, onOpenChange, onSuccess }: CloseDe
             name: deal.deal_name,
             status: 'Active',
             sector: deal.company_sector || null,
-            vehicle: deal.source_channel === 'verve_coinvest' ? 'Verve Ventures' : 'Direct',
+            vehicle: deal.source_channel === 'verve_coinvest' ? 'fiduciary' : 'spv',
           })
           .select('id')
           .single()
