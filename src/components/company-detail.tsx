@@ -31,11 +31,17 @@ interface CompanyDetailProps {
 
 const typeBadgeColors: Record<string, string> = {
   EQT: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  Fund: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
   CVL: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
   SAFE: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
   ADJ: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
   DIST: 'bg-green-500/20 text-green-400 border-green-500/30',
   RECAP: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+}
+
+function getTxnTypeLabel(txnType: string, vehicle: string | null | undefined): string {
+  if ((vehicle === 'fund_lp' || vehicle === 'fund_etf') && txnType === 'EQT') return 'Fund'
+  return txnType
 }
 
 export function CompanyDetail({ company, transactions, fxRates, onRefresh }: CompanyDetailProps) {
@@ -171,9 +177,9 @@ export function CompanyDetail({ company, transactions, fxRates, onRefresh }: Com
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className={cn('text-xs', typeBadgeColors[txn.type] || '')}
+                          className={cn('text-xs', typeBadgeColors[getTxnTypeLabel(txn.type, company.vehicle)] || '')}
                         >
-                          {txn.type}
+                          {getTxnTypeLabel(txn.type, company.vehicle)}
                         </Badge>
                         {!isCash && (
                           <span className="ml-1 text-xs text-muted-foreground">(non-cash)</span>
