@@ -8,12 +8,14 @@ import {
   Briefcase,
   TrendingUp,
   Settings,
+  Globe,
 } from 'lucide-react'
 
 const tabs = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/portfolio', label: 'Portfolio', icon: Briefcase },
   { href: '/pipeline', label: 'Pipeline', icon: TrendingUp },
+  { href: '/market-intelligence', label: 'Market', icon: Globe },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
